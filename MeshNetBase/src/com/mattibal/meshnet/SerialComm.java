@@ -1,95 +1,110 @@
 package com.mattibal.meshnet;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.util.Enumeration;
-
+import gnu.io.CommPort;
 import gnu.io.CommPortIdentifier;
+import gnu.io.NoSuchPortException;
+import gnu.io.PortInUseException;
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent;
 import gnu.io.SerialPortEventListener;
+import gnu.io.UnsupportedCommOperationException;
 
-public class SerialComm implements SerialPortEventListener{
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.TooManyListenersException;
+
+/**
+ * This version of the TwoWaySerialComm example makes use of the
+ * SerialPortEventListener to avoid polling.
+ * 
+ */
+public class SerialComm {
 	
-	SerialPort serialPort;
+	public static final int TIME_OUT = 2000;
 	
-	private static final String PORT_DEV_PATHS[] = {"/dev/ttyACM0"};
+	protected OutputStream outStream;
 	
-	private BufferedReader input;
-	/** The output stream to the port */
-	private OutputStream output;
-	/** Milliseconds to block while waiting for port open */
-	private static final int TIME_OUT = 2000;
-	/** Default bits per second for COM port. */
-	private static final int DATA_RATE = 9600;
-
-	public void initialize() {
-		CommPortIdentifier portId = null;
-		Enumeration portEnum = CommPortIdentifier.getPortIdentifiers();
-
-		//First, Find an instance of serial port as set in PORT_NAMES.
-		while (portEnum.hasMoreElements()) {
-			CommPortIdentifier currPortId = (CommPortIdentifier) portEnum.nextElement();
-			for (String portName : PORT_DEV_PATHS) {
-				if (currPortId.getName().equals(portName)) {
-					portId = currPortId;
-					break;
-				}
-			}
-		}
-		if (portId == null) {
-			System.out.println("Could not find COM port.");
-			return;
-		}
-
-		try {
-			// open serial port, and use class name for the appName.
-			serialPort = (SerialPort) portId.open(this.getClass().getName(),
+	public SerialComm(String portName) throws NoSuchPortException, PortInUseException, UnsupportedCommOperationException, IOException, TooManyListenersException{
+		
+		CommPortIdentifier portIdentifier = CommPortIdentifier
+				.getPortIdentifier(portName);
+		if (portIdentifier.isCurrentlyOwned()) {
+			System.out.println("Error: Port is currently in use");
+		} else {
+			CommPort commPort = portIdentifier.open(this.getClass().getName(),
 					TIME_OUT);
 
-			// set port parameters
-			serialPort.setSerialPortParams(DATA_RATE,
-					SerialPort.DATABITS_8,
-					SerialPort.STOPBITS_1,
-					SerialPort.PARITY_NONE);
+			if (commPort instanceof SerialPort) {
+				SerialPort serialPort = (SerialPort) commPort;
+				serialPort.setSerialPortParams(9600, SerialPort.DATABITS_8,
+						SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
 
-			// open the streams
-			input = new BufferedReader(new InputStreamReader(serialPort.getInputStream()));
-			output = serialPort.getOutputStream();
+				InputStream in = serialPort.getInputStream();
+				outStream = serialPort.getOutputStream();
 
-			// add event listeners
-			serialPort.addEventListener(this);
-			serialPort.notifyOnDataAvailable(true);
-		} catch (Exception e) {
-			System.err.println(e.toString());
-		}
-	}
+				//(new Thread(new SerialWriter(out))).start();
 
-	/**
-	 * This should be called when you stop using the port.
-	 * This will prevent port locking on platforms like Linux.
-	 */
-	public synchronized void close() {
-		if (serialPort != null) {
-			serialPort.removeEventListener();
-			serialPort.close();
-		}
-	}
+				serialPort.addEventListener(new SerialReader(in));
+				serialPort.notifyOnDataAvailable(true);
 
-	/**
-	 * Handle an event on the serial port. Read the data and print it.
-	 */
-	public synchronized void serialEvent(SerialPortEvent oEvent) {
-		if (oEvent.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
-			try {
-				String inputLine=input.readLine();
-				System.out.println(inputLine);
-			} catch (Exception e) {
-				System.err.println(e.toString());
+			} else {
+				throw new IOException("Only serial ports are handled by this example.");
 			}
 		}
-		// Ignore all the other eventTypes, but you should consider the other ones.
 	}
+
+	/**
+	 * Handles the input coming from the serial port. A new line character is
+	 * treated as the end of a block in this example.
+	 */
+	public static class SerialReader implements SerialPortEventListener {
+		
+		private InputStream in;
+		private byte[] buffer = new byte[1024];
+
+		public SerialReader(InputStream in) {
+			this.in = in;
+		}
+
+		public void serialEvent(SerialPortEvent arg0) {
+			int data;
+
+			try {
+				int len = 0;
+				while ((data = in.read()) > -1) {
+					if (data == '\n') {
+						break;
+					}
+					buffer[len++] = (byte) data;
+				}
+				System.out.print(new String(buffer, 0, len));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+	}
+
+	
+	/*public static class SerialWriter implements Runnable {
+		OutputStream out;
+
+		public SerialWriter(OutputStream out) {
+			this.out = out;
+		}
+
+		public void run() {
+			try {
+				int c = 0;
+				while ((c = System.in.read()) > -1) {
+					this.out.write(c);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+				System.exit(-1);
+			}
+		}
+	}*/
 
 }

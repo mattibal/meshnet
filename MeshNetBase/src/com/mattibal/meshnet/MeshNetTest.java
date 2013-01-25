@@ -21,9 +21,8 @@ public class MeshNetTest {
 		System.out.println("Started");
 		*/
 		
-		TwoWaySerialComm comm = new TwoWaySerialComm();
 		try {
-			comm.connect("/dev/ttyACM0");
+			SerialComm comm = new SerialComm("/dev/ttyACM0");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
