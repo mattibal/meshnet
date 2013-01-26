@@ -1,30 +1,38 @@
 package com.mattibal.meshnet;
 
-public class SerialLayer2 {
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
+public class SerialLayer2 implements BaseLayer3.ILayer2 {
 	
-	public static final int HDLC_MRU = 64;
-	public static final int HDLC_INITFCS = 0;
-	public static final int CRC16_CCITT_MAGIC_VAL = 0xf0b8;
-	public static final int CRC16_CCITT_INIT_VAL = 0xffff;
+	private static final int HDLC_MRU = 64;
+	private static final int HDLC_INITFCS = 0;
+	private static final int CRC16_CCITT_MAGIC_VAL = 0xf0b8;
+	private static final int CRC16_CCITT_INIT_VAL = 0xffff;
 	
-	public static final int HDLC_FLAG_SEQUENCE = 0x7e;
-	public static final int HDLC_CONTROL_ESCAPE = 0x7d;
-	public static final int HDLC_ESCAPE_BIT = 0x20;
+	private static final int HDLC_FLAG_SEQUENCE = 0x7e;
+	private static final int HDLC_CONTROL_ESCAPE = 0x7d;
+	private static final int HDLC_ESCAPE_BIT = 0x20;
 	
-	private int[] hdlc_rx_frame = new int[HDLC_MRU];
+	private byte[] hdlc_rx_frame = new byte[HDLC_MRU];
 	private int hdlc_rx_frame_index = 0;
 	private int hdlc_rx_frame_fcs = HDLC_INITFCS;
 	private boolean hdlc_rx_char_esc = false;
 	
 	// Used to write to serial port
-	private SerialComm serial;
+	private SerialRXTXComm serial;
 	
-	public SerialLayer2(SerialComm serial){
+	private BaseLayer3 layer3;
+	
+	public SerialLayer2(SerialRXTXComm serial, BaseLayer3 layer3){
 		this.serial = serial;
+		this.layer3 = layer3;
 	}
 	
 	/** Called when I receive a byte from the serial port */
-	public void onSerialByteReceived(int data){
+	public void onSerialByteReceived(byte byteValue){
+		
+		int data = byteValue & 0xFF;
 		
 		if(data == HDLC_FLAG_SEQUENCE){ // Start/End sequence
 			
@@ -54,7 +62,7 @@ public class SerialLayer2 {
 	    }
 	    
 	    // Store received data
-	    hdlc_rx_frame[hdlc_rx_frame_index] = data;
+	    hdlc_rx_frame[hdlc_rx_frame_index] = (byte)(data & 0xff);
 	    
 	    // Calculate checksum
 	    crc16_ccitt_calc_byte(hdlc_rx_frame_fcs,data);
@@ -77,14 +85,16 @@ public class SerialLayer2 {
 	 * it's lenght in bytes is the number of the "len" parameter
 	 */
 	public void onFrameReceived(int len){
-		// TODO
+		ByteBuffer buf = ByteBuffer.wrap(hdlc_rx_frame, 0, len);
+		hdlc_rx_frame = new byte[HDLC_MRU];
+		layer3.onFrameReceived(buf);
 	}
 	
 	/**
 	 * Send a frame to the serial port, by encoding them with HDLC.
 	 * @param bytesToSend
 	 */
-	public void sendFrame(int[] bytesToSend){
+	public void sendFrame(byte[] bytesToSend) throws IOException{
 		
 		int pos = 0;
 		int data;
@@ -97,7 +107,7 @@ public class SerialLayer2 {
 	    // Send escaped data
 	    while(bytes_to_send != 0){
 	    	// Get next data
-	        data = bytesToSend[pos++];
+	        data = bytesToSend[pos++] & 0xff;
 	        // Update checksum
 	        crc16_ccitt_calc_byte(fcs,data);
 	        // See if data should be escaped
@@ -140,7 +150,7 @@ public class SerialLayer2 {
 	
 	// CRC16 CCITT CALCULATION
 	
-	public static final int[] crc16_ccitt_table = {
+	private static final int[] crc16_ccitt_table = {
 	      0x0000, 0x1189, 0x2312, 0x329b, 0x4624, 0x57ad, 0x6536, 0x74bf,
 	      0x8c48, 0x9dc1, 0xaf5a, 0xbed3, 0xca6c, 0xdbe5, 0xe97e, 0xf8f7,
 	      0x1081, 0x0108, 0x3393, 0x221a, 0x56a5, 0x472c, 0x75b7, 0x643e,

@@ -22,7 +22,7 @@ public class MeshNetTest {
 		*/
 		
 		try {
-			SerialComm comm = new SerialComm("/dev/ttyACM0");
+			SerialRXTXComm comm = new SerialRXTXComm("/dev/ttyACM0");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

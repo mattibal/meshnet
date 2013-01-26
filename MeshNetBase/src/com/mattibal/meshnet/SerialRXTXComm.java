@@ -19,7 +19,7 @@ import java.util.TooManyListenersException;
  * SerialPortEventListener to avoid polling.
  * 
  */
-public class SerialComm implements SerialPortEventListener{
+public class SerialRXTXComm implements SerialPortEventListener{
 	
 	public static final int TIME_OUT = 2000;
 	
@@ -31,7 +31,7 @@ public class SerialComm implements SerialPortEventListener{
 	protected SerialLayer2 layer2;
 	
 	
-	public SerialComm(String portName) throws NoSuchPortException, PortInUseException, UnsupportedCommOperationException, IOException, TooManyListenersException{
+	public SerialRXTXComm(String portName, BaseLayer3 layer3) throws NoSuchPortException, PortInUseException, UnsupportedCommOperationException, IOException, TooManyListenersException{
 		
 		CommPortIdentifier portIdentifier = CommPortIdentifier
 				.getPortIdentifier(portName);
@@ -59,55 +59,33 @@ public class SerialComm implements SerialPortEventListener{
 			}
 		}
 		
-		this.layer2 = new SerialLayer2(this);
+		this.layer2 = new SerialLayer2(this, layer3);
 	}
 
 	
 
 	@Override
 	public void serialEvent(SerialPortEvent arg0) {
-				
-		int data;
-
 		try {
 			int len = 0;
-			while ((data = inStream.read()) > -1) {
-				layer2.onSerialByteReceived(data);
+			while ((len = inStream.read(readBuffer)) > -1) {
+				for(byte b: readBuffer){
+					layer2.onSerialByteReceived(b);
+				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
 	}
 	
 	
 	/**
 	 * Send via serial port the byte contained in the int parameter
+	 * @throws IOException 
 	 */
-	public void transmitByte(int dataByte){
-		// TODO
+	public void transmitByte(int dataByte) throws IOException{
+		outStream.write(dataByte);
 	}
 	
-
-	
-	/*public static class SerialWriter implements Runnable {
-		OutputStream out;
-
-		public SerialWriter(OutputStream out) {
-			this.out = out;
-		}
-
-		public void run() {
-			try {
-				int c = 0;
-				while ((c = System.in.read()) > -1) {
-					this.out.write(c);
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
-				System.exit(-1);
-			}
-		}
-	}*/
 
 }
