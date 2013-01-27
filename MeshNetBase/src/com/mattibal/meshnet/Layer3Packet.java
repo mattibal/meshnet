@@ -3,6 +3,11 @@ package com.mattibal.meshnet;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * This class represent a layer3 packet
@@ -46,7 +51,7 @@ public class Layer3Packet {
 	private static final byte BEACON_PARENT_RESPONSE_TYPE = 0x04;
 	private static final byte ASSIGN_ADDRESS_TYPE = 0x05;
 	
-	final protected ByteBuffer packet;
+	protected final ByteBuffer packet;
 	
 	private Layer3Packet(int capacity){
 		packet = ByteBuffer.allocate(capacity);
@@ -75,14 +80,14 @@ public class Layer3Packet {
 			this.data=bytes; // i assume that the rest of the buffer is all data
 		}
 		
-		public DataToBase(int sourceMacAddress, byte[] data) throws InvalidPacketException{
+		public DataToBase(int sourceAddress, byte[] data) throws InvalidPacketException{
 			super(2+data.length);
-			if(sourceMacAddress > 255 || sourceMacAddress<0){
+			if(sourceAddress > 255 || sourceAddress<0){
 				throw new InvalidPacketException();
 			}
 			packet.put(DATA_TO_DEVICE_TYPE);
-			this.srcAddr = sourceMacAddress;
-			packet.put((byte)sourceMacAddress);
+			this.srcAddr = sourceAddress;
+			packet.put((byte)sourceAddress);
 			packet.put(data);
 			packet.position(2);
 			this.data = packet;
@@ -92,7 +97,7 @@ public class Layer3Packet {
 			return data;
 		}
 		
-		public int getSourceMacAddress(){
+		public int getSourceAddress(){
 			return srcAddr;
 		}
 	}
@@ -112,14 +117,14 @@ public class Layer3Packet {
 			this.data=bytes; // i assume that the rest of the buffer is all data
 		}
 		
-		public DataToDevice(int destinationMacAddress, byte[] data) throws InvalidPacketException{
+		public DataToDevice(int destinationAddress, byte[] data) throws InvalidPacketException{
 			super(2+data.length);
-			if(destinationMacAddress > 255 || destinationMacAddress<0){
+			if(destinationAddress > 255 || destinationAddress<0){
 				throw new InvalidPacketException();
 			}
 			packet.put(DATA_TO_DEVICE_TYPE);
-			this.destAddr = destinationMacAddress;
-			packet.put((byte)destinationMacAddress);
+			this.destAddr = destinationAddress;
+			packet.put((byte)destinationAddress);
 			packet.put(data);
 			packet.position(2);
 			this.data = packet;
@@ -129,7 +134,7 @@ public class Layer3Packet {
 			return data;
 		}
 		
-		public int getDestinationMacAddress(){
+		public int getDestinationAddress(){
 			return destAddr;
 		}
 	}
@@ -176,72 +181,80 @@ public class Layer3Packet {
 	
 	public static class BeaconChildResponse extends Layer3Packet{
 		
+		public static final int PACKET_LEN = 9;
+		
 		private final long childNonce;
-		private final long hmac;
 		
 		private BeaconChildResponse(ByteBuffer bytes) throws InvalidPacketException {
 			super(bytes);
-			if(bytes.remaining() != 8){
+			if(bytes.remaining() != PACKET_LEN-1){
 				throw new InvalidPacketException();
 			}
 			this.childNonce = ((long)bytes.getInt()) & 0xffffffff;
-			this.hmac = ((long)bytes.getInt()) & 0xffffffff;
 		}
 		
-		public BeaconChildResponse(long childNonce, long hmac) throws InvalidPacketException{
-			super(9);
-			if(childNonce > 4294967295L || childNonce <0
-					|| hmac > 4294967295L || hmac <0){
+		public BeaconChildResponse(long childNonce, int baseNonce, int networkKey) throws InvalidPacketException{
+			super(PACKET_LEN);
+			if(childNonce > 4294967295L || childNonce <0){
 				throw new InvalidPacketException();
 			}
 			packet.put(BEACON_CHILD_RESPONSE_TYPE);
 			this.childNonce=childNonce;
-			this.hmac=hmac;
 			packet.putInt((int)childNonce);
-			packet.putInt((int)hmac);
+			packet.putInt(calculateHmac(baseNonce, networkKey));
 		}
 		
 		public long getChildNonce(){
 			return childNonce;
+		}	
+		
+		public void verifyHmac(int baseNonce, int networkKey) throws InvalidPacketException {
+			int writtenHmac = packet.getInt(PACKET_LEN-4);
+			int generated = calculateHmac(baseNonce, networkKey);
+			if(generated != writtenHmac){
+				throw new InvalidPacketException();
+			}
 		}
 		
-		public long getHmac(){
-			return hmac;
-		}	
+		private int calculateHmac(int baseNonce, int networkKey){
+			ByteBuffer key = ByteBuffer.allocate(8);
+			key.order(ByteOrder.LITTLE_ENDIAN);
+			key.putInt(baseNonce);
+			key.putInt(networkKey);
+			return generateHmac(packet.duplicate(), PACKET_LEN-4, key).getInt();
+		}
 	}
 	
 	
 	
 	public static class BeaconParentResponse extends Layer3Packet{
 		
+		public static final int PACKET_LEN = 13;
+		
 		private final long childNonce;
 		private final long parentNonce;
-		private final long hmac;
 		
 		private BeaconParentResponse(ByteBuffer bytes) throws InvalidPacketException {
 			super(bytes);
-			if(bytes.remaining() != 12){
+			if(bytes.remaining() != PACKET_LEN-1){
 				throw new InvalidPacketException();
 			}
 			this.childNonce = ((long)bytes.getInt()) & 0xffffffff;
 			this.parentNonce = ((long)bytes.getInt()) & 0xffffffff;
-			this.hmac = ((long)bytes.getInt()) & 0xffffffff;
 		}
 		
-		public BeaconParentResponse(long childNonce, long parentNonce, long hmac) throws InvalidPacketException{
-			super(13);
+		public BeaconParentResponse(long childNonce, long parentNonce, int baseNonce, int networkKey) throws InvalidPacketException{
+			super(PACKET_LEN);
 			if(childNonce > 4294967295L || childNonce <0
-					|| parentNonce > 4294967295L || parentNonce <0
-					|| hmac > 4294967295L || hmac <0){
+					|| parentNonce > 4294967295L || parentNonce <0){
 				throw new InvalidPacketException();
 			}
 			packet.put(BEACON_PARENT_RESPONSE_TYPE);
 			this.childNonce=childNonce;
 			this.parentNonce=parentNonce;
-			this.hmac=hmac;
 			packet.putInt((int)childNonce);
 			packet.putInt((int)parentNonce);
-			packet.putInt((int)hmac);
+			packet.putInt(calculateHmac(baseNonce, networkKey));
 		}
 		
 		public long getChildNonce(){
@@ -252,48 +265,54 @@ public class Layer3Packet {
 			return parentNonce;
 		}
 		
-		public long getHmac(){
-			return hmac;
-		}	
+		public void verifyHmac(int baseNonce, int networkKey) throws InvalidPacketException {
+			int writtenHmac = packet.getInt(PACKET_LEN-4);
+			int generated = calculateHmac(baseNonce, networkKey);
+			if(generated != writtenHmac){
+				throw new InvalidPacketException();
+			}
+		}
+		
+		private int calculateHmac(int baseNonce, int networkKey){
+			ByteBuffer key = ByteBuffer.allocate(8);
+			key.order(ByteOrder.LITTLE_ENDIAN);
+			key.putInt(baseNonce);
+			key.putInt(networkKey);
+			return generateHmac(packet.duplicate(), PACKET_LEN-4, key).getInt();
+		}
+			
 	}
 	
 	
 	
 	public static class AssignAddress extends Layer3Packet{
 		
+		public static final int PACKET_LEN = 11;
+		
 		private final long childNonce;
 		private final int address;
 		private final int maxRoute;
-		private final long hmac;
 		
 		private AssignAddress(ByteBuffer bytes) throws InvalidPacketException {
 			super(bytes);
-			if(bytes.remaining() != 10){
+			if(bytes.remaining() != PACKET_LEN-1){
 				throw new InvalidPacketException();
 			}
 			this.childNonce = ((long)bytes.getInt()) & 0xffffffff;
 			this.address = ((int)bytes.getShort()) & 0xffff;
 			this.maxRoute = ((int)bytes.getShort()) & 0xffff;
-			this.hmac = ((long)bytes.getInt()) & 0xffffffff;
 		}
 		
-		public AssignAddress(long childNonce, int address, int maxRoute, long hmac) throws InvalidPacketException{
-			super(11);
-			if(address > 65535 || address<0
-					|| maxRoute > 65535 || maxRoute<0
-					|| childNonce > 4294967295L || childNonce <0
-					|| hmac > 4294967295L || hmac <0){
-				throw new InvalidPacketException();
-			}
+		public AssignAddress(int childNonce, short address, short maxRoute, int baseNonce, int networkKey) {
+			super(PACKET_LEN);
 			packet.put(ASSIGN_ADDRESS_TYPE);
 			this.childNonce=childNonce;
 			this.address=address;
 			this.maxRoute=maxRoute;
-			this.hmac=hmac;
-			packet.putInt((int)childNonce);
-			packet.putShort((short)address);
-			packet.putShort((short)maxRoute);
-			packet.putInt((int)hmac);
+			packet.putInt(childNonce);
+			packet.putShort(address);
+			packet.putShort(maxRoute);
+			packet.putInt(calculateHmac(baseNonce, networkKey));
 		}
 		
 		public long getChildNonce(){
@@ -305,11 +324,39 @@ public class Layer3Packet {
 		public int getMaxRoute(){
 			return maxRoute;
 		}
-		public long getHmac(){
-			return hmac;
-		}	
+		
+		public void verifyHmac(int baseNonce, int networkKey) throws InvalidPacketException {
+			int writtenHmac = packet.getInt(PACKET_LEN-4);
+			int generated = calculateHmac(baseNonce, networkKey);
+			if(generated != writtenHmac){
+				throw new InvalidPacketException();
+			}
+		}
+		
+		private int calculateHmac(int baseNonce, int networkKey){
+			ByteBuffer key = ByteBuffer.allocate(8);
+			key.order(ByteOrder.LITTLE_ENDIAN);
+			key.putInt(baseNonce);
+			key.putInt((int)childNonce & 0xff);
+			key.putInt(networkKey);
+			return generateHmac(packet.duplicate(), PACKET_LEN-4, key).getInt();
+		}
 	}
 	
+	
+	private static ByteBuffer generateHmac(ByteBuffer messageBytes, int messageLen, ByteBuffer keyBytes){
+		try {
+			SecretKeySpec keySpec = new SecretKeySpec(keyBytes.array(), "HmacSHA1");
+			Mac mac = Mac.getInstance("HmacSHA1");
+			mac.init(keySpec);
+			byte[] mess = new byte[messageLen];
+			messageBytes.get(mess);
+			byte[] result = mac.doFinal(mess);
+			return ByteBuffer.wrap(result);
+		} catch (NoSuchAlgorithmException | InvalidKeyException e) {
+			throw new RuntimeException(); // this should never happen
+		}
+	}
 	
 	
 	public static class InvalidPacketException extends IOException {

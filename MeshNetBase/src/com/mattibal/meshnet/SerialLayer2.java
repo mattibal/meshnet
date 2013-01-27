@@ -27,6 +27,7 @@ public class SerialLayer2 implements BaseLayer3.ILayer2 {
 	public SerialLayer2(SerialRXTXComm serial, BaseLayer3 layer3){
 		this.serial = serial;
 		this.layer3 = layer3;
+		layer3.addLayer2Interface(this);
 	}
 	
 	/** Called when I receive a byte from the serial port */
@@ -87,7 +88,7 @@ public class SerialLayer2 implements BaseLayer3.ILayer2 {
 	public void onFrameReceived(int len){
 		ByteBuffer buf = ByteBuffer.wrap(hdlc_rx_frame, 0, len);
 		hdlc_rx_frame = new byte[HDLC_MRU];
-		layer3.onFrameReceived(buf);
+		layer3.onFrameReceived(buf, this);
 	}
 	
 	/**
