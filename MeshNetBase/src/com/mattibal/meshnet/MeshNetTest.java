@@ -37,9 +37,10 @@ public class MeshNetTest {
 		
 		try {
 			
-			BaseLayer3 base = new BaseLayer3();
+			Layer3Base base = new Layer3Base();
 			SerialRXTXComm serial = new SerialRXTXComm("/dev/ttyACM0", base);
-			BaseLayer3.NetworkSetupThread setup = base.new NetworkSetupThread();
+			Thread.sleep(4000);
+			Layer3Base.NetworkSetupThread setup = base.new NetworkSetupThread();
 			Thread setupThread = new Thread(setup);
 			setupThread.start();
 			Thread.sleep(30000);

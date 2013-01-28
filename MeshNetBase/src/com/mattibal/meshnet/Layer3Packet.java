@@ -155,12 +155,8 @@ public class Layer3Packet {
 			this.baseNonce = ((long)bytes.getInt()) & 0xffffffff;
 		}
 		
-		public Beacon(int networkId, long baseNonce) throws InvalidPacketException{
+		public Beacon(int networkId, int baseNonce) throws InvalidPacketException{
 			super(7);
-			if(networkId > 65535 || networkId<0
-					|| baseNonce > 4294967295L || baseNonce <0){
-				throw new InvalidPacketException();
-			}
 			packet.put(BEACON_TYPE);
 			this.networkId=networkId;
 			this.baseNonce=baseNonce;
@@ -190,17 +186,14 @@ public class Layer3Packet {
 			if(bytes.remaining() != PACKET_LEN-1){
 				throw new InvalidPacketException();
 			}
-			this.childNonce = ((long)bytes.getInt()) & 0xffffffff;
+			this.childNonce = bytes.getInt();
 		}
 		
-		public BeaconChildResponse(long childNonce, int baseNonce, int networkKey) throws InvalidPacketException{
+		public BeaconChildResponse(int childNonce, int baseNonce, int networkKey) throws InvalidPacketException{
 			super(PACKET_LEN);
-			if(childNonce > 4294967295L || childNonce <0){
-				throw new InvalidPacketException();
-			}
 			packet.put(BEACON_CHILD_RESPONSE_TYPE);
 			this.childNonce=childNonce;
-			packet.putInt((int)childNonce);
+			packet.putInt(childNonce);
 			packet.putInt(calculateHmac(baseNonce, networkKey));
 		}
 		
@@ -231,37 +224,33 @@ public class Layer3Packet {
 		
 		public static final int PACKET_LEN = 13;
 		
-		private final long childNonce;
-		private final long parentNonce;
+		private final int childNonce;
+		private final int parentNonce;
 		
 		private BeaconParentResponse(ByteBuffer bytes) throws InvalidPacketException {
 			super(bytes);
 			if(bytes.remaining() != PACKET_LEN-1){
 				throw new InvalidPacketException();
 			}
-			this.childNonce = ((long)bytes.getInt()) & 0xffffffff;
-			this.parentNonce = ((long)bytes.getInt()) & 0xffffffff;
+			this.childNonce = bytes.getInt();
+			this.parentNonce = bytes.getInt();
 		}
 		
-		public BeaconParentResponse(long childNonce, long parentNonce, int baseNonce, int networkKey) throws InvalidPacketException{
+		public BeaconParentResponse(int childNonce, int parentNonce, int baseNonce, int networkKey) throws InvalidPacketException{
 			super(PACKET_LEN);
-			if(childNonce > 4294967295L || childNonce <0
-					|| parentNonce > 4294967295L || parentNonce <0){
-				throw new InvalidPacketException();
-			}
 			packet.put(BEACON_PARENT_RESPONSE_TYPE);
 			this.childNonce=childNonce;
 			this.parentNonce=parentNonce;
-			packet.putInt((int)childNonce);
-			packet.putInt((int)parentNonce);
+			packet.putInt(childNonce);
+			packet.putInt(parentNonce);
 			packet.putInt(calculateHmac(baseNonce, networkKey));
 		}
 		
-		public long getChildNonce(){
+		public int getChildNonce(){
 			return childNonce;
 		}
 		
-		public long getParentNonce(){
+		public int getParentNonce(){
 			return parentNonce;
 		}
 		
@@ -298,20 +287,20 @@ public class Layer3Packet {
 			if(bytes.remaining() != PACKET_LEN-1){
 				throw new InvalidPacketException();
 			}
-			this.childNonce = ((long)bytes.getInt()) & 0xffffffff;
-			this.address = ((int)bytes.getShort()) & 0xffff;
-			this.maxRoute = ((int)bytes.getShort()) & 0xffff;
+			this.childNonce = bytes.getInt();
+			this.address = ((int)bytes.get()) & 0xff;
+			this.maxRoute = ((int)bytes.get()) & 0xff;
 		}
 		
-		public AssignAddress(int childNonce, short address, short maxRoute, int baseNonce, int networkKey) {
+		public AssignAddress(int childNonce, int address, int maxRoute, int baseNonce, int networkKey) {
 			super(PACKET_LEN);
 			packet.put(ASSIGN_ADDRESS_TYPE);
 			this.childNonce=childNonce;
 			this.address=address;
 			this.maxRoute=maxRoute;
 			packet.putInt(childNonce);
-			packet.putShort(address);
-			packet.putShort(maxRoute);
+			packet.put((byte)address);
+			packet.put((byte)maxRoute);
 			packet.putInt(calculateHmac(baseNonce, networkKey));
 		}
 		

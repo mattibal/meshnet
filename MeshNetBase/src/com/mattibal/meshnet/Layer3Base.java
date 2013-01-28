@@ -25,7 +25,7 @@ import com.mattibal.meshnet.NetworkTree.TreeAlreadyCalculatedException;
  * of the base, and it can send a frame to the layer2.
  *
  */
-public class BaseLayer3 {
+public class Layer3Base {
 	
 	private int networkId = 18287;
 	private int networkKey = 48384;
@@ -41,7 +41,7 @@ public class BaseLayer3 {
 	private NetworkTree activeTree = null;
 	
 	
-	public BaseLayer3(){
+	public Layer3Base(){
 		
 	}
 	
@@ -53,8 +53,8 @@ public class BaseLayer3 {
 	/**
 	 * This is the method called by a layer2 when it receives a frame of data
 	 */
-	public synchronized void onFrameReceived(ByteBuffer frame, ILayer2 srcInterface){ 
-				
+	public synchronized void onFrameReceived(ByteBuffer frame, ILayer2 srcInterface, int srcMacAddress){ 
+
 		try {
 			Layer3Packet packet = Layer3Packet.buildFromByteArray(frame);
 			if(packet instanceof DataToBase){
@@ -64,7 +64,7 @@ public class BaseLayer3 {
 			} else if(packet instanceof BeaconChildResponse){
 				BeaconChildResponse beaconChildResponse = (BeaconChildResponse) packet;
 				// TODO verify hmac with different tree baseNonces
-				onBeaconChildResponse(beaconChildResponse, srcInterface);
+				onBeaconChildResponse(beaconChildResponse, srcInterface, srcMacAddress);
 			} else if(packet instanceof BeaconParentResponse){
 				BeaconParentResponse beaconParentResponse = (BeaconParentResponse) packet;
 				// TODO verify hmac
@@ -84,7 +84,7 @@ public class BaseLayer3 {
 	 * base layer3.
 	 */
 	public static interface ILayer2 {
-		public void sendFrame(byte[] bytesToSend) throws IOException;
+		public void sendLayer3Packet(byte[] bytesToSend, int destMacAddress) throws IOException;
 	}
 	
 	
@@ -98,7 +98,7 @@ public class BaseLayer3 {
 		try {
 			Layer3Packet.Beacon beacon = new Layer3Packet.Beacon(networkId, tree.baseNonce);
 			for(ILayer2 interf: interfaces){
-				interf.sendFrame(beacon.getRawBytes().array());
+				interf.sendLayer3Packet(beacon.getRawBytes().array(), 0);
 			}
 		} catch (InvalidPacketException e) {
 			e.printStackTrace();
@@ -130,7 +130,7 @@ public class BaseLayer3 {
 			} else {
 				rootNode = tree.getRouteToNode(unassigned.getAddress());
 			}
-			rootNode.getInterface().sendFrame(packet.getRawBytes().array());
+			rootNode.getInterface().sendLayer3Packet(packet.getRawBytes().array(), rootNode.getMacAddress());
 		}
 		return isSomebodyUnassigned;
 	}
@@ -152,10 +152,10 @@ public class BaseLayer3 {
 		}
 	}
 	
-	private void onBeaconChildResponse(BeaconChildResponse beaconResp, ILayer2 srcInterface){
+	private void onBeaconChildResponse(BeaconChildResponse beaconResp, ILayer2 srcInterface, int srcMacAddress){
 		if(newTree!=null){
 			try {
-				newTree.setRootNode((int)beaconResp.getChildNonce(), srcInterface);
+				newTree.setRootNode((int)beaconResp.getChildNonce(), srcInterface, srcMacAddress);
 			} catch (TreeAlreadyCalculatedException
 					| InconsistentTreeStructureException e) {
 				e.printStackTrace();

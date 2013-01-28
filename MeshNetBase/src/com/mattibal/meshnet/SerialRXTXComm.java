@@ -5,8 +5,6 @@ import gnu.io.CommPortIdentifier;
 import gnu.io.NoSuchPortException;
 import gnu.io.PortInUseException;
 import gnu.io.SerialPort;
-import gnu.io.SerialPortEvent;
-import gnu.io.SerialPortEventListener;
 import gnu.io.UnsupportedCommOperationException;
 
 import java.io.IOException;
@@ -19,7 +17,7 @@ import java.util.TooManyListenersException;
  * SerialPortEventListener to avoid polling.
  * 
  */
-public class SerialRXTXComm implements SerialPortEventListener{
+public class SerialRXTXComm{
 	
 	public static final int TIME_OUT = 2000;
 	
@@ -28,10 +26,10 @@ public class SerialRXTXComm implements SerialPortEventListener{
 	
 	private byte[] readBuffer = new byte[1024];
 	
-	protected SerialLayer2 layer2;
+	protected Layer2Serial layer2;
 	
 	
-	public SerialRXTXComm(String portName, BaseLayer3 layer3) throws NoSuchPortException, PortInUseException, UnsupportedCommOperationException, IOException, TooManyListenersException{
+	public SerialRXTXComm(String portName, Layer3Base layer3) throws NoSuchPortException, PortInUseException, UnsupportedCommOperationException, IOException, TooManyListenersException{
 		
 		CommPortIdentifier portIdentifier = CommPortIdentifier
 				.getPortIdentifier(portName);
@@ -49,32 +47,36 @@ public class SerialRXTXComm implements SerialPortEventListener{
 				inStream = serialPort.getInputStream();
 				outStream = serialPort.getOutputStream();
 
-				//(new Thread(new SerialWriter(out))).start();
+				new SerialReceiver().start();
 
-				serialPort.addEventListener(this);
-				serialPort.notifyOnDataAvailable(true);
+				/*serialPort.addEventListener(this);
+				serialPort.notifyOnDataAvailable(true);*/
 
 			} else {
 				throw new IOException("This is not a serial port!.");
 			}
 		}
 		
-		this.layer2 = new SerialLayer2(this, layer3);
+		this.layer2 = new Layer2Serial(this, layer3);
 	}
 
 	
-
-	@Override
-	public void serialEvent(SerialPortEvent arg0) {
-		try {
-			int len = 0;
-			while ((len = inStream.read(readBuffer)) > -1) {
-				for(byte b: readBuffer){
-					layer2.onSerialByteReceived(b);
+	
+	public class SerialReceiver extends Thread {
+		@Override
+		public void run() {
+			super.run();
+			int len = -1;
+			try{
+				while((len=inStream.read(readBuffer))>-1){
+					System.out.println("rx: "+(new String(readBuffer, 0, len)));
+					for(int i=0; i<len; i++){
+						layer2.onSerialByteReceived(readBuffer[i]);
+					}
 				}
+			}catch(IOException e){
+				e.printStackTrace();
 			}
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 	}
 	
@@ -83,8 +85,9 @@ public class SerialRXTXComm implements SerialPortEventListener{
 	 * Send via serial port the byte contained in the int parameter
 	 * @throws IOException 
 	 */
-	public void transmitByte(int dataByte) throws IOException{
-		outStream.write(dataByte);
+	public void transmitByte(byte data) throws IOException{
+		outStream.write(data);
+		System.out.print(" tx:"+(int)data);
 	}
 	
 

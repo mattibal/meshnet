@@ -39,13 +39,13 @@ public class NetworkTree {
 		return null;
 	}
 	
-	public synchronized void setRootNode(int childNonce, BaseLayer3.ILayer2 interf) throws TreeAlreadyCalculatedException, InconsistentTreeStructureException{
+	public synchronized void setRootNode(int childNonce, Layer3Base.ILayer2 interf, int macAddress) throws TreeAlreadyCalculatedException, InconsistentTreeStructureException{
 		Node n = childNonceToNodes.get(childNonce);
 		if(n == null){
 			if(addrCalculationDone){
 				throw new TreeAlreadyCalculatedException();
 			}
-			RootNode rootNode = new RootNode(childNonce, interf);
+			RootNode rootNode = new RootNode(childNonce, interf, macAddress);
 			rootNodes.add(rootNode);
 		} else {
 			// Check if this setRootNode request is consistent with the tree structure
@@ -215,15 +215,21 @@ public class NetworkTree {
 	 */
 	public class RootNode extends Node {
 		
-		private final BaseLayer3.ILayer2 interf;
+		private final Layer3Base.ILayer2 interf;
+		private final int macAddress;
 		
-		public RootNode(int childNonce, BaseLayer3.ILayer2 interf){
+		public RootNode(int childNonce, Layer3Base.ILayer2 interf, int macAddress){
 			super(childNonce);
 			this.interf = interf;
+			this.macAddress = macAddress;
 		}
 		
-		public BaseLayer3.ILayer2 getInterface(){
+		public Layer3Base.ILayer2 getInterface(){
 			return interf;
+		}
+		
+		public int getMacAddress(){
+			return macAddress;
 		}
 	}
 	
