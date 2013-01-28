@@ -11,6 +11,7 @@ import java.util.Set;
 import com.mattibal.meshnet.Layer3Packet.BeaconChildResponse;
 import com.mattibal.meshnet.Layer3Packet.BeaconParentResponse;
 import com.mattibal.meshnet.Layer3Packet.DataToBase;
+import com.mattibal.meshnet.Layer3Packet.DataToDevice;
 import com.mattibal.meshnet.Layer3Packet.InvalidPacketException;
 import com.mattibal.meshnet.NetworkTree.InconsistentTreeStructureException;
 import com.mattibal.meshnet.NetworkTree.Node;
@@ -87,6 +88,16 @@ public class Layer3Base {
 		public void sendLayer3Packet(byte[] bytesToSend, int destMacAddress) throws IOException;
 	}
 	
+	/**
+	 * The interface a Layer4 must implement to receive packets from this
+	 * base Layer3
+	 */
+	public static interface ILayer4 {
+		public void onPacketReceived(Layer3Packet.DataToBase packet);
+	}
+	
+	
+	// Methods to send packets to devices
 	
 	/**
 	 * Send a beacon to all devices, by broadcasting them to all physical interfaces
@@ -130,9 +141,18 @@ public class Layer3Base {
 			} else {
 				rootNode = tree.getRouteToNode(unassigned.getAddress());
 			}
-			rootNode.getInterface().sendLayer3Packet(packet.getRawBytes().array(), rootNode.getMacAddress());
+			rootNode.getNetInterface().sendLayer3Packet(packet.getRawBytes().array(), rootNode.getMacAddress());
 		}
 		return isSomebodyUnassigned;
+	}
+	
+	
+	public void sendDataToDevice(byte[] dataPayload, NetworkTree.Node destNode) throws IOException{
+		int destinationAddress = destNode.getAddress();
+		DataToDevice packet = new DataToDevice(destinationAddress, dataPayload);
+		byte[] packetBytes = packet.getRawBytes().array();
+		RootNode firstHop = destNode.getRouteToMyself();
+		firstHop.getNetInterface().sendLayer3Packet(packetBytes, firstHop.getMacAddress());
 	}
 	
 	
@@ -147,8 +167,12 @@ public class Layer3Base {
 			node = activeTree.getNodeFromAddress(data.getSourceAddress());
 		}
 		if(node!=null){
-			node.setAssigned();
-			node.getLayer4().onPacketReceived(data);
+			ILayer4 layer4 = node.getLayer4();
+			if(layer4 == null){
+				layer4 = new Layer4SimpleRpc(node, this);
+				node.setLayer4AndAssigned(layer4);
+			}
+			layer4.onPacketReceived(data);
 		}
 	}
 	

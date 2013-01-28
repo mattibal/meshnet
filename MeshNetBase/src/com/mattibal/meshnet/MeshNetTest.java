@@ -43,7 +43,8 @@ public class MeshNetTest {
 			Layer3Base.NetworkSetupThread setup = base.new NetworkSetupThread();
 			Thread setupThread = new Thread(setup);
 			setupThread.start();
-			Thread.sleep(30000);
+			Thread.sleep(3000);
+			
 			
 		} catch (NoSuchPortException | PortInUseException
 				| UnsupportedCommOperationException | IOException

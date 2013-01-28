@@ -53,7 +53,7 @@ public class NetworkTree {
 				throw new InconsistentTreeStructureException();
 			}
 			RootNode rootNode = (RootNode) n;
-			if(!rootNode.getInterface().equals(interf)){
+			if(!rootNode.getNetInterface().equals(interf)){
 				throw new InconsistentTreeStructureException();
 			}
 		}
@@ -176,15 +176,6 @@ public class NetworkTree {
 		}
 		
 		/**
-		 * TODO This method must be called by the Layer3 when it has confirmed that
-		 * this Node has received the "assignAddress" packet,
-		 * for example because has successfully received a data packet from him.
-		 */
-		public synchronized void setAssigned(){
-			isAssigned = true;
-		}
-		
-		/**
 		 * Layer3 needs this childNonce to calculate HMAC of messages for
 		 * this node of this network tree instance.
 		 */
@@ -200,11 +191,23 @@ public class NetworkTree {
 			return maxRoute;
 		}
 		
-		public Layer4SimpleRpc getLayer4(){
-			if(layer4==null){
-				layer4 = new Layer4SimpleRpc();
-			}
+		/**
+		 * @return null if the device is not "assigned" and doesn't yet have a layer4
+		 */
+		public synchronized Layer3Base.ILayer4 getLayer4(){
 			return layer4;
+		}
+		
+		/**
+		 * This also implicitly set the device as "assigned" (has received assignAddress)
+		 */
+		protected synchronized void setLayer4AndAssigned(Layer3Base.ILayer4 layer4){
+			this.layer4 = this.layer4;
+			isAssigned = true;
+		}
+		
+		public RootNode getRouteToMyself(){
+			return NetworkTree.this.getRouteToNode(this.getAddress());
 		}
 	}
 	
@@ -224,7 +227,7 @@ public class NetworkTree {
 			this.macAddress = macAddress;
 		}
 		
-		public Layer3Base.ILayer2 getInterface(){
+		public Layer3Base.ILayer2 getNetInterface(){
 			return interf;
 		}
 		
