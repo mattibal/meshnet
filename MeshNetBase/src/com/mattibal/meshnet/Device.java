@@ -69,18 +69,29 @@ public class Device {
 	 * a Device of the appropriate type
 	 */
 	public static Device createDeviceFromType(int deviceType, int uniqueDeviceId){
-		Device device = knownUniqueDevicesId.get(uniqueDeviceId);
-		if(device == null){
-			if(deviceType == LedTestDevice.DEVICE_TYPE){
-				device =  new LedTestDevice(uniqueDeviceId);
-			} else {
-				device =  new Device(uniqueDeviceId, deviceType);
+		synchronized(knownUniqueDevicesId){
+			Device device = knownUniqueDevicesId.get(uniqueDeviceId);
+			if(device == null){
+				if(deviceType == LedTestDevice.DEVICE_TYPE){
+					device =  new LedTestDevice(uniqueDeviceId);
+				} else {
+					device =  new Device(uniqueDeviceId, deviceType);
+				}
 			}
+			return device;
 		}
-		return device;
 	}
 	
-	
+	/**
+	 * This method must be called by users of the MeshNet library to get Device
+	 * objects of the devices they want to access to control actuators
+	 * or get sensor readings.
+	 */
+	public static Device getDeviceFromUniqueId(int uniqueDeviceId){
+		synchronized(knownUniqueDevicesId){
+			return knownUniqueDevicesId.get(uniqueDeviceId);
+		}
+	}
 	
 	public synchronized void setLayer4(Layer4SimpleRpc layer4){
 		this.layer4 = layer4;

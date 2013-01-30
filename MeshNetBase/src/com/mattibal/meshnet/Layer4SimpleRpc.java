@@ -86,18 +86,14 @@ public class Layer4SimpleRpc implements Layer3Base.ILayer4 {
 	 * (or associate) with the correspondent Device object.
 	 */
 	private void onDeviceInfoCommand(ByteBuffer data){
-		byte echoReply = data.get();
-		if(echoReply != 45){
-			System.out.println("wrong echo: "+echoReply);
-		}
 		int deviceType = data.getInt();
 		int deviceUniqueId = data.getInt();
 		device = Device.createDeviceFromType(deviceType, deviceUniqueId);
+		device.setLayer4(this);
 	}
 	
 	public void sendDeviceInfoCommand() throws IOException{
-		byte[] sendData = new byte[1];
-		sendData[0] = 45; // data to echo
+		byte[] sendData = new byte[0];
 		sendCommandRequest(0, sendData);
 	}
 	

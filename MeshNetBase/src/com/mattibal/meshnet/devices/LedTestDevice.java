@@ -24,9 +24,9 @@ public class LedTestDevice extends Device {
 	public void setLedState(boolean on) throws IOException{
 		byte[] data = new byte[1];
 		if(on){
-			data[1] = 1;
+			data[0] = 1;
 		} else {
-			data[1] = 0;
+			data[0] = 0;
 		}
 		this.getLayer4().sendCommandRequest(1, data);
 	}

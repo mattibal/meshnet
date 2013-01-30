@@ -87,7 +87,7 @@ public class SerialRXTXComm{
 	 */
 	public void transmitByte(byte data) throws IOException{
 		outStream.write(data);
-		System.out.print(" tx:"+(int)data);
+		//System.out.print(" tx:"+(int)data);
 	}
 	
 

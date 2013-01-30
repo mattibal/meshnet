@@ -65,6 +65,7 @@ public class Layer3Base {
 			} else if(packet instanceof BeaconChildResponse){
 				BeaconChildResponse beaconChildResponse = (BeaconChildResponse) packet;
 				// TODO verify hmac with different tree baseNonces
+				beaconChildResponse.verifyHmac(newTree.baseNonce, srcMacAddress);
 				onBeaconChildResponse(beaconChildResponse, srcInterface, srcMacAddress);
 			} else if(packet instanceof BeaconParentResponse){
 				BeaconParentResponse beaconParentResponse = (BeaconParentResponse) packet;
@@ -125,10 +126,9 @@ public class Layer3Base {
 	 * @throws IOException 
 	 */
 	private boolean sendAssignAddressToAllUnassignedDevices(NetworkTree tree) throws IOException{
-		int assignAddressCount = tree.getLastCompletedAssignAddressCount();
 		boolean isSomebodyUnassigned = false;
 		NetworkTree.Node unassigned;
-		while( (unassigned = tree.getNextUnassignedNode(assignAddressCount)) != null){
+		while( (unassigned = tree.getNextUnassignedNode()) != null){
 			isSomebodyUnassigned = true;
 			// Send assignAddress packet
 			Layer3Packet.AssignAddress packet = new Layer3Packet.AssignAddress(
@@ -229,7 +229,8 @@ public class Layer3Base {
 				boolean isSomebodyUnassigned = true;
 				while(retries>0 && isSomebodyUnassigned){
 					isSomebodyUnassigned = sendAssignAddressToAllUnassignedDevices(newTree);
-					Thread.sleep(3000);
+					// now I wait a bit while devices are sending me command 0 layer4 packets
+					Thread.sleep(2000);
 					retries--;
 				}
 				// Wow, now we should have the network working!!

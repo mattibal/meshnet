@@ -214,7 +214,9 @@ public class Layer3Packet {
 			key.order(ByteOrder.LITTLE_ENDIAN);
 			key.putInt(baseNonce);
 			key.putInt(networkKey);
-			return generateHmac(packet.duplicate(), PACKET_LEN-4, key).getInt();
+			ByteBuffer buf = packet.duplicate();
+			buf.position(0);
+			return generateHmac(buf, PACKET_LEN-4, key).getInt();
 		}
 	}
 	
@@ -323,28 +325,38 @@ public class Layer3Packet {
 		}
 		
 		private int calculateHmac(int baseNonce, int networkKey){
-			ByteBuffer key = ByteBuffer.allocate(8);
+			ByteBuffer key = ByteBuffer.allocate(12);
 			key.order(ByteOrder.LITTLE_ENDIAN);
+			key.putInt((int)childNonce);
 			key.putInt(baseNonce);
-			key.putInt((int)childNonce & 0xff);
 			key.putInt(networkKey);
-			return generateHmac(packet.duplicate(), PACKET_LEN-4, key).getInt();
+			ByteBuffer msg = packet.duplicate();
+			msg.position(0);
+			return generateHmac(msg, PACKET_LEN-4, key).getInt();
 		}
 	}
 	
 	
 	private static ByteBuffer generateHmac(ByteBuffer messageBytes, int messageLen, ByteBuffer keyBytes){
-		try {
+		// TODO bisogna reimplementare sta cosa perchè è diversa da quello dell'AVR
+		/*try {
 			SecretKeySpec keySpec = new SecretKeySpec(keyBytes.array(), "HmacSHA1");
 			Mac mac = Mac.getInstance("HmacSHA1");
 			mac.init(keySpec);
 			byte[] mess = new byte[messageLen];
 			messageBytes.get(mess);
 			byte[] result = mac.doFinal(mess);
-			return ByteBuffer.wrap(result);
+			ByteBuffer buf = ByteBuffer.wrap(result);
+			buf.order(ByteOrder.LITTLE_ENDIAN);
+			return buf; 
 		} catch (NoSuchAlgorithmException | InvalidKeyException e) {
 			throw new RuntimeException(); // this should never happen
-		}
+		}*/
+		ByteBuffer buf = ByteBuffer.allocate(4);
+		buf.order(ByteOrder.LITTLE_ENDIAN);
+		buf.putInt(100);
+		buf.position(0);
+		return buf;
 	}
 	
 	

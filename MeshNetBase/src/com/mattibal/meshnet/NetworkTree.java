@@ -19,7 +19,6 @@ public class NetworkTree {
 	private boolean addrCalculationDone = false;
 	
 	protected final int baseNonce;
-	protected int lastCompletedAssignAddressCount = 0;
 	
 	public NetworkTree(int baseNonce){
 		this.baseNonce = baseNonce;
@@ -32,7 +31,7 @@ public class NetworkTree {
 	 */
 	public synchronized RootNode getRouteToNode(int nodeAddress){
 		for(RootNode node: rootNodes){
-			if(node.getAddress() < nodeAddress && node.getMaxRoute() > nodeAddress){
+			if(node.getAddress() <= nodeAddress && node.getMaxRoute() >= nodeAddress){
 				return node;
 			}
 		}
@@ -72,9 +71,9 @@ public class NetworkTree {
 	 * Gets the next node that need to receive the "assignAddress" packet
 	 * @return null if all nodes has been assigned
 	 */
-	public synchronized Node getNextUnassignedNode(int assignMessCount){
+	public synchronized Node getNextUnassignedNode(){
 		if(!addrCalculationDone){
-			int endAddr = -1;
+			int endAddr = 0;
 			for(Node node : rootNodes){
 				endAddr = node.calculateAddrMaxRoute(endAddr+1);
 			}
@@ -83,13 +82,9 @@ public class NetworkTree {
 		Iterator<RootNode> it = rootNodes.iterator();
 		Node unassigned = null;
 		while(unassigned==null && it.hasNext()){
-			unassigned = it.next().getNextUnassigned(assignMessCount);
+			unassigned = it.next().getNextUnassigned();
 		}
 		return unassigned;
-	}
-
-	public synchronized int getLastCompletedAssignAddressCount(){
-		return lastCompletedAssignAddressCount;
 	}
 	
 	
@@ -127,10 +122,7 @@ public class NetworkTree {
 		private int address = -1;
 		private int maxRoute = -1;
 		
-		private boolean isAssigned = false;
-		private int assignMessCount = 0;
-		
-		private Layer4SimpleRpc layer4 = null;
+		private Layer3Base.ILayer4 layer4 = null;
 		
 		private Node(int childNonce){
 			this.childNonce = childNonce;
@@ -158,19 +150,18 @@ public class NetworkTree {
 		}
 		
 		/**
-		 * Recursively search for an unassigned node that has received less than
-		 * assignMessCount messages of assignAddress, starting from myself,
+		 * Recursively search for an unassigned node, starting from myself,
 		 * and recursively with my descendants.
 		 * @return The next unassigned node, or null if are all assigned
 		 */
-		protected synchronized Node getNextUnassigned(int assignMessCount){
-			if(!isAssigned && this.assignMessCount<assignMessCount){
+		protected synchronized Node getNextUnassigned(){
+			if(layer4 == null){
 				return this;
 			}
 			Iterator<Node> it = children.iterator();
 			Node unassigned = null;
 			while(unassigned==null && it.hasNext()){
-				unassigned = it.next().getNextUnassigned(assignMessCount);
+				unassigned = it.next().getNextUnassigned();
 			}
 			return unassigned;
 		}
@@ -202,8 +193,7 @@ public class NetworkTree {
 		 * This also implicitly set the device as "assigned" (has received assignAddress)
 		 */
 		protected synchronized void setLayer4AndAssigned(Layer3Base.ILayer4 layer4){
-			this.layer4 = this.layer4;
-			isAssigned = true;
+			this.layer4 = layer4;
 		}
 		
 		public RootNode getRouteToMyself(){

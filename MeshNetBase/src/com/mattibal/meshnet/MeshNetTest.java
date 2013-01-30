@@ -7,6 +7,8 @@ import gnu.io.UnsupportedCommOperationException;
 import java.io.IOException;
 import java.util.TooManyListenersException;
 
+import com.mattibal.meshnet.devices.LedTestDevice;
+
 /**
  * Coso di test che fa partire la base della MeshNet, e poi scambia qualche
  * messaggio con i device
@@ -43,8 +45,20 @@ public class MeshNetTest {
 			Layer3Base.NetworkSetupThread setup = base.new NetworkSetupThread();
 			Thread setupThread = new Thread(setup);
 			setupThread.start();
-			Thread.sleep(3000);
-			
+			setupThread.join();
+			// Alè, la rete è pronta, adesso posso giocare con i device
+			Device device = Device.getDeviceFromUniqueId(384932);
+			if(device!=null && device instanceof LedTestDevice){
+				LedTestDevice ledDevice = (LedTestDevice) device;
+				for(int i=0; i<50; i++){
+					ledDevice.setLedState(true);
+					Thread.sleep(200);
+					//ledDevice.setLedState(false);
+					//Thread.sleep(1000);
+				}
+			} else {
+				System.out.println("Errore get device");
+			}
 			
 		} catch (NoSuchPortException | PortInUseException
 				| UnsupportedCommOperationException | IOException
