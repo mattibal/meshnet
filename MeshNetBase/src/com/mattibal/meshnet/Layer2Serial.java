@@ -59,7 +59,6 @@ public class Layer2Serial implements Layer3Base.ILayer2 {
 			rxFrame.position(0);
 			try {
 				Frame frame = new Frame(rxFrame.array());
-				System.out.println("frame destinato a mac:"+frame.getDestMac());
 				if(frame.getDestMac() == myMacAddress || frame.getDestMac() == 0){
 					layer3.onFrameReceived(ByteBuffer.wrap(frame.getPayload()), this, frame.getSrcMac());
 				}

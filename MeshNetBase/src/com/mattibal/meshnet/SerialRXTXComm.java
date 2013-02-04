@@ -69,7 +69,7 @@ public class SerialRXTXComm{
 			int len = -1;
 			try{
 				while((len=inStream.read(readBuffer))>-1){
-					System.out.println("rx: "+(new String(readBuffer, 0, len)));
+					//System.out.println("rx: "+(new String(readBuffer, 0, len)));
 					for(int i=0; i<len; i++){
 						layer2.onSerialByteReceived(readBuffer[i]);
 					}

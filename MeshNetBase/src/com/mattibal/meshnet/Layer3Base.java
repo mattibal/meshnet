@@ -8,6 +8,7 @@ import java.security.acl.LastOwnerException;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.mattibal.meshnet.Layer3Packet.Beacon;
 import com.mattibal.meshnet.Layer3Packet.BeaconChildResponse;
 import com.mattibal.meshnet.Layer3Packet.BeaconParentResponse;
 import com.mattibal.meshnet.Layer3Packet.DataToBase;
@@ -64,15 +65,19 @@ public class Layer3Base {
 				onDataToBase(dataToBase);
 			} else if(packet instanceof BeaconChildResponse){
 				BeaconChildResponse beaconChildResponse = (BeaconChildResponse) packet;
+				System.out.println("ricevuto BeaconChildResponse childNonce:"+beaconChildResponse.getChildNonce());
 				// TODO verify hmac with different tree baseNonces
 				beaconChildResponse.verifyHmac(newTree.baseNonce, srcMacAddress);
 				onBeaconChildResponse(beaconChildResponse, srcInterface, srcMacAddress);
 			} else if(packet instanceof BeaconParentResponse){
 				BeaconParentResponse beaconParentResponse = (BeaconParentResponse) packet;
+				System.out.println("ricevuto BeaconParentResponse parentNonce:"+beaconParentResponse.getParentNonce()+" childNonce:"+beaconParentResponse.getChildNonce());
 				// TODO verify hmac
 				onBeaconParentResponse(beaconParentResponse);
+			} else if(packet instanceof Beacon){
+				// Do nothing... this might just be useful for debugging
 			} else {
-				System.out.println("Inuseful packet arrived");
+				System.out.println("Unknow type packet arrived");
 			}
 				
 		} catch (Layer3Packet.InvalidPacketException e) {
@@ -223,19 +228,25 @@ public class Layer3Base {
 				}
 				// Send beacons and wait so every device can answer with beacon responses
 				sendBeacon(newTree);
+				System.out.println("Beacons sent. Waiting for responses");
 				Thread.sleep(3000);
 				// Hopefully I have received all beacon responses, now I assign addresses
 				int retries = MAX_NUM_ASSIGN_ADDRESS_RETRIES;
-				boolean isSomebodyUnassigned = true;
-				while(retries>0 && isSomebodyUnassigned){
-					isSomebodyUnassigned = sendAssignAddressToAllUnassignedDevices(newTree);
-					// now I wait a bit while devices are sending me command 0 layer4 packets
-					Thread.sleep(2000);
-					retries--;
+				while(retries>0){
+					boolean wasSomebodyUnassigned = sendAssignAddressToAllUnassignedDevices(newTree);
+					if(wasSomebodyUnassigned){
+						System.out.println("Assign address sent, retries left: "+retries);
+						// now I wait a bit while devices are sending me command 0 layer4 packets
+						Thread.sleep(2000);
+						retries--;
+					} else {
+						break;
+					}
 				}
 				// Wow, now we should have the network working!!
 				// I set the tree we have generated as the activeTree
 				activeTree = newTree;
+				System.out.println("Network setup completed!");
 			} catch (IOException | InterruptedException e) {
 				e.printStackTrace();
 			}

@@ -347,7 +347,8 @@ void handleDataPacket(unsigned char* message, uint8_t len){
     if(*message == 0x00 && len >= sizeof(deviceInfoCommand)){
         sendDeviceInfoCommand();
     } else {
-        onCommandReceived((uint8_t)*message, (void*)(++message), len-1);
+        unsigned char* data = message+1;
+        onCommandReceived((uint8_t)*message, (void*) data, len-1);
     }
 }
 
@@ -441,7 +442,6 @@ void processIncomingPacket(unsigned char* message, uint8_t len, uint8_t interfac
             // Broadcast the beacon to all interfaces
             int interf;
             for(interf=0; interf<NUM_INTERFACES; interf++){
-            DEBUG_PRINT("broadcastBeacon");
                 sendPacket((unsigned char *) rec, sizeof(beacon), interf, 0); // 0 is broadcast macAddress
             }
             // TODO maybe we could insert a small delay here to ensure the propagation of beacons without colliding with beaconResponses
@@ -452,7 +452,6 @@ void processIncomingPacket(unsigned char* message, uint8_t len, uint8_t interfac
             key.baseNonce = newBaseNonce;
             key.networkKey = networkKey;
             resp.hmac = calculateHmac((unsigned char *) &resp, sizeof(beaconChildResponse)-4, (unsigned char *) &key, sizeof(key));
-            DEBUG_PRINT("sendChildResponse");
             sendPacket((unsigned char *) &resp, sizeof(resp), newToBaseInterface, newToBaseMacAddress);
         }
         

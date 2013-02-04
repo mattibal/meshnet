@@ -46,8 +46,9 @@ public class NetworkTree {
 			}
 			RootNode rootNode = new RootNode(childNonce, interf, macAddress);
 			rootNodes.add(rootNode);
+			childNonceToNodes.put(childNonce, rootNode);
 		} else {
-			// Check if this setRootNode request is consistent with the tree structure
+			// Only check if this setRootNode request is consistent with the tree structure
 			if(!(n instanceof RootNode)){
 				throw new InconsistentTreeStructureException();
 			}
