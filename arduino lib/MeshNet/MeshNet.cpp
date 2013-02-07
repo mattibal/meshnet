@@ -318,11 +318,13 @@ typedef struct{
 
 // Send a layer4 packet to base (the first byte of the message must be the command type)
 void sendCommand(uint8_t command, void* data, uint8_t dataLen){
-    dataToBaseLayer4 message;
-    message.srcAddress = myAddress;
-    message.command = command;
-    memcpy(&message.data, data, dataLen);
-    sendPacket((unsigned char*)&message, dataLen+3, toBaseInterface, toBaseMacAddress);
+    if(toBaseInterface != -1){
+        dataToBaseLayer4 message;
+        message.srcAddress = myAddress;
+        message.command = command;
+        memcpy(&message.data, data, dataLen);
+        sendPacket((unsigned char*)&message, dataLen+3, toBaseInterface, toBaseMacAddress);
+    }
 }
 
 

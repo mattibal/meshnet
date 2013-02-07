@@ -12,6 +12,8 @@ public class LedTestDevice extends Device {
 	
 	public static final int DEVICE_TYPE = 123;
 	
+	private static final int SET_LED_STATE_COMMAND = 1;
+	
 	public LedTestDevice(int uniqueDeviceId){
 		super(uniqueDeviceId, DEVICE_TYPE);
 	}
@@ -21,7 +23,7 @@ public class LedTestDevice extends Device {
 	 * turned on.
 	 * @throws IOException when I MIGHT not have set the LED state
 	 */
-	public void setLedState(boolean on) throws IOException{
+	public synchronized void setLedState(boolean on) throws IOException{
 		byte[] data = new byte[1];
 		if(on){
 			data[0] = 1;

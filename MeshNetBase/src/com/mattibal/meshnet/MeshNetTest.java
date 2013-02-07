@@ -50,11 +50,11 @@ public class MeshNetTest {
 			Device device = Device.getDeviceFromUniqueId(384932);
 			if(device!=null && device instanceof LedTestDevice){
 				LedTestDevice ledDevice = (LedTestDevice) device;
-				for(int i=0; i<1000; i++){
+				for(int i=0; i<5000; i++){
 					ledDevice.setLedState(true);
-					Thread.sleep(50);
+					Thread.sleep(20);
 					ledDevice.setLedState(false);
-					Thread.sleep(1000);
+					Thread.sleep(50);
 				}
 			} else {
 				System.out.println("Errore get device");

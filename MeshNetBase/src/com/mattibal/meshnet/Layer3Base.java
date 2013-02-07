@@ -229,7 +229,7 @@ public class Layer3Base {
 				// Send beacons and wait so every device can answer with beacon responses
 				sendBeacon(newTree);
 				System.out.println("Beacons sent. Waiting for responses");
-				Thread.sleep(3000);
+				Thread.sleep(2000);
 				// Hopefully I have received all beacon responses, now I assign addresses
 				int retries = MAX_NUM_ASSIGN_ADDRESS_RETRIES;
 				while(retries>0){
@@ -237,7 +237,7 @@ public class Layer3Base {
 					if(wasSomebodyUnassigned){
 						System.out.println("Assign address sent, retries left: "+retries);
 						// now I wait a bit while devices are sending me command 0 layer4 packets
-						Thread.sleep(2000);
+						Thread.sleep(1000);
 						retries--;
 					} else {
 						break;
