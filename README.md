@@ -41,6 +41,7 @@ Development status
 --------------------
 
 The code and the protocols described of MeshNet are in a very early stage of development.
+
 This is a list of things that need to be done:
 * All devices must detect a MAC address collision (this happens frequently since it's 8 bit long, so 256 available addresses) and change their address quickly
 * Serial tx collision detection and retransmission, something like CSMA/CA
@@ -50,6 +51,8 @@ This is a list of things that need to be done:
 Currently I have tested MeshNet only with this network configuration:
 * An Arduino Uno with an nRF24l01+ module and connected via USB to a computer where runs the Java software
 * Another Arduino Uno with an nRF24l01+ module and with a LED on pin 4
+
 In both Arduinos must run the "MeshNet_Serial_RF24" sketch, with a different "deviceUniqueId" constant for each one.
 When you launch "MeshNetTest.java" in the computer, it will setup the network in some seconds, and then the LED on the 2nd Arduino will start blink!
+
 Every time the LED is switched on or off, a packet has been sent by the base (the Java program) in the 1st Arduino via the USB (serial) connection, and then routed by them to the 2nd Arduino, where it's executed the RPC handler function that switch on and off the LED.
