@@ -1,3 +1,23 @@
+/*
+* To use this sketch you must connect the nRF24l01+ module
+* to the Arduino in this way:
+*
+* Arduino pin --- nRF24l01+ module pin
+*     GND    -----    GND
+*    3.3V    -----    VCC
+*       7    -----     CE
+*       8    -----    CSN
+*      13    -----    SCK
+*      11    -----   MOSI
+*      12    -----   MISO
+*
+* You have to use my modified version of RF24 library:
+* https://github.com/mattibal/RF24
+
+* Remember to change the "deviceUniqueId" in this sketch
+* for every device.
+*/
+
 #include "MeshNet.h"
 
 #include <SPI.h>
@@ -12,12 +32,13 @@
 const uint32_t deviceType = 123;
 
 // DEVICE UNIQUE ID
-uint32_t deviceUniqueId = 384932;
+uint32_t deviceUniqueId = 394932;
 
 
 /** LAYER 2 DEPENDENT CODE **/
 
-RF24 radio(9,10);
+// Al posto di 9,10 ho messo 7,8
+RF24 radio(7,8);
 
 const uint8_t RF24_INTERFACE = 0;
 const uint8_t SERIAL_INTERFACE = 1;
@@ -51,8 +72,8 @@ struct setLedStateRx {
 void onSetLedStateRx(struct setLedStateRx* data){
   if(data->ledState == 1){
       digitalWrite(4, HIGH);
-      delay(10);
-      digitalWrite(4, LOW);
+      //delay(10);
+      //digitalWrite(4, LOW);
   } else {
       digitalWrite(4, LOW);
   }
@@ -91,13 +112,6 @@ void loop(){
   
     rf24receive();
     
-    // Non chiedermi perchè, ma senza questo non funziona!!
-    /*while (Serial.available() <= 0) {
-      Serial.print('A');   // send a capital A
-      delay(300);
-    }*/
-    
     serialReceive();
     
-    delay(500);
 }
