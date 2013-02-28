@@ -126,8 +126,7 @@ public class Layer2Serial implements Layer3Base.ILayer2 {
 				if(readenCrc[0]!=calculatedCrc[0] || readenCrc[1]!=calculatedCrc[1]){
 					throw new InvalidPacketException();
 				}
-			} catch(BufferUnderflowException | BufferOverflowException 
-					| IndexOutOfBoundsException e){
+			} catch(Exception e){
 				throw new InvalidPacketException();
 			}
 		}

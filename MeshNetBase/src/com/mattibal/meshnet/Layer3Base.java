@@ -185,8 +185,7 @@ public class Layer3Base {
 		if(newTree!=null){
 			try {
 				newTree.setRootNode((int)beaconResp.getChildNonce(), srcInterface, srcMacAddress);
-			} catch (TreeAlreadyCalculatedException
-					| InconsistentTreeStructureException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
@@ -247,7 +246,7 @@ public class Layer3Base {
 				// I set the tree we have generated as the activeTree
 				activeTree = newTree;
 				System.out.println("Network setup completed!");
-			} catch (IOException | InterruptedException e) {
+			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}

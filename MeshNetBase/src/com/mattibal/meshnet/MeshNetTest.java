@@ -60,9 +60,7 @@ public class MeshNetTest {
 				System.out.println("Errore get device");
 			}
 			
-		} catch (NoSuchPortException | PortInUseException
-				| UnsupportedCommOperationException | IOException
-				| TooManyListenersException | InterruptedException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
