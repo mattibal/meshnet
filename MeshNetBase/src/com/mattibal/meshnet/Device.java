@@ -86,6 +86,12 @@ public class Device {
 	 * This method must be called by users of the MeshNet library to get Device
 	 * objects of the devices they want to access to control actuators
 	 * or get sensor readings.
+	 * 
+	 *  TODO this method should be put on Layer3Base, because if it's here as
+	 *  a static method, I can't run multiple Layer3Base on the same JVM
+	 *  (this is unusual, but might be useful for test purposes or if I want
+	 *  to join two different MeshNet networks)
+	 *
 	 */
 	public static Device getDeviceFromUniqueId(int uniqueDeviceId){
 		synchronized(knownUniqueDevicesId){
