@@ -316,7 +316,7 @@ typedef struct{
     unsigned char data[40]; // TODO lunghezza array messa a caso
 } __attribute__((packed)) dataToBaseLayer4;
 
-// Send a layer4 packet to base (the first byte of the message must be the command type)
+// Send a layer4 packet to base
 void sendCommand(uint8_t command, void* data, uint8_t dataLen){
     if(toBaseInterface != -1){
         dataToBaseLayer4 message;

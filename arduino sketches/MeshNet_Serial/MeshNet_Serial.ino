@@ -32,23 +32,54 @@ int sendPacket(unsigned char* message, uint8_t len, uint8_t interface, uint8_t m
 
 /** LAYER 7 CODE */
 
+
 struct setLedStateRx {
   uint8_t ledState;
 } __attribute__((packed));
 
 void onSetLedStateRx(struct setLedStateRx* data){
   if(data->ledState == 1){
-      digitalWrite(4, HIGH);
-      delay(10);
-      digitalWrite(4, LOW);
+      digitalWrite(13, HIGH);
+      //delay(10);
+      //digitalWrite(4, LOW);
   } else {
-      digitalWrite(4, LOW);
+      digitalWrite(13, LOW);
   }
+}
+
+
+void onSetLedPwmStateRx(uint8_t level){
+  analogWrite(3, level);
+}
+
+struct sendAnalogReadPacket {
+  uint16_t analogValue;
+} __attribute__((packed));
+  
+void sendAnalogRead(int pin){
+  uint8_t command;
+  if(pin==A0){
+    command = 3;
+  } else {
+    command = 4;
+  }
+  struct sendAnalogReadPacket packet;
+  packet.analogValue = analogRead(pin);
+  sendCommand(command, (void*) &packet, sizeof(packet));
 }
 
 void onCommandReceived(uint8_t command, void* data, uint8_t dataLen){
   if(command==1 && dataLen >= sizeof(struct setLedStateRx)){
     onSetLedStateRx((struct setLedStateRx*)data);
+  }
+  if(command==2 && dataLen >= sizeof(uint8_t)){
+    onSetLedPwmStateRx(*((uint8_t *) data));
+  }
+  if(command==3){
+    sendAnalogRead(A0);
+  }
+  if(command==4){
+    sendAnalogRead(A1);
   }
 }
 
@@ -57,7 +88,7 @@ void setup(){
   
     Serial.begin(9600);
     
-    pinMode(4, OUTPUT); // for the LED
+    pinMode(13, OUTPUT); // for the LED
     
     int rfin;
     int r=0;
@@ -75,13 +106,6 @@ void setup(){
 
 void loop(){
     
-    // Non chiedermi perchè, ma senza questo non funziona!!
-    /*while (Serial.available() <= 0) {
-      Serial.print('A');   // send a capital A
-      delay(300);
-    }*/
-    
     serialReceive();
     
-    delay(500);
 }

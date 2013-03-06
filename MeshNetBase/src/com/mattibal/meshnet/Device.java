@@ -2,7 +2,6 @@ package com.mattibal.meshnet;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
-import java.util.HashSet;
 
 import com.mattibal.meshnet.devices.LedTestDevice;
 
