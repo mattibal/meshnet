@@ -74,6 +74,7 @@ public class Device {
 				if(deviceType == LedTestDevice.DEVICE_TYPE){
 					device =  new LedTestDevice(uniqueDeviceId);
 				} else {
+					// Unknown device type
 					device =  new Device(uniqueDeviceId, deviceType);
 				}
 			}
@@ -103,7 +104,7 @@ public class Device {
 	}
 	
 	
-	protected synchronized Layer4SimpleRpc getLayer4(){
+	public synchronized Layer4SimpleRpc getLayer4(){
 		return layer4;
 	}
 	
