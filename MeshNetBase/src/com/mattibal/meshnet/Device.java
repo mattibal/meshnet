@@ -3,6 +3,7 @@ package com.mattibal.meshnet;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 
+import com.mattibal.meshnet.devices.Led1Analog2Device;
 import com.mattibal.meshnet.devices.LedTestDevice;
 
 /**
@@ -57,8 +58,11 @@ public class Device {
 	 * exist in this Device implementation 
 	 */
 	public void onCommandRequestArrived(int command, ByteBuffer data) throws InexistentCommandException{
-		// If there is a command that every device must accept (except command 0),
-		// it must catch and implemented here!
+		
+		// If there is a command that every device must accept (EXCEPT command 0),
+		// it must be catched and implemented here!
+		
+		// I don't know how to handle the command, so I raise an exception
 		throw new InexistentCommandException(command);
 	}
 	
@@ -72,7 +76,9 @@ public class Device {
 			Device device = knownUniqueDevicesId.get(uniqueDeviceId);
 			if(device == null){
 				if(deviceType == LedTestDevice.DEVICE_TYPE){
-					device =  new LedTestDevice(uniqueDeviceId);
+					// TODO workaround for duplicated device type
+					//device =  new LedTestDevice(uniqueDeviceId);
+					device = new Led1Analog2Device(uniqueDeviceId);
 				} else {
 					// Unknown device type
 					device =  new Device(uniqueDeviceId, deviceType);
