@@ -30,7 +30,7 @@ public class LedTestDevice extends Device {
 		} else {
 			data[0] = 0;
 		}
-		this.getLayer4().sendCommandRequest(1, data);
+		sendCommand(1, data);
 	}
 
 }

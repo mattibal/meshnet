@@ -1,7 +1,10 @@
 package com.mattibal.meshnet;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.mattibal.meshnet.devices.Led1Analog2Device;
 import com.mattibal.meshnet.devices.LedTestDevice;
@@ -40,6 +43,12 @@ public class Device {
 	 */
 	private static HashMap<Integer,Device> knownUniqueDevicesId = new HashMap<Integer,Device>();
 	
+	/**
+	 * These are the listeners of every command (packet) sent to this Device.
+	 */
+	private final Set<CommandReceivedListener> listeners = new HashSet<CommandReceivedListener>();
+	
+	
 	/** This constructor also add the Device to the knownDevices */
 	protected Device(int uniqueDeviceId, int deviceType){
 		this.uniqueDeviceId=uniqueDeviceId;
@@ -61,6 +70,11 @@ public class Device {
 		
 		// If there is a command that every device must accept (EXCEPT command 0),
 		// it must be catched and implemented here!
+		
+		// Notify the listeners 
+		for(CommandReceivedListener listener: listeners){
+			listener.onCommandReceived(command, uniqueDeviceId, data);
+		}
 		
 		// I don't know how to handle the command, so I raise an exception
 		throw new InexistentCommandException(command);
@@ -110,8 +124,36 @@ public class Device {
 	}
 	
 	
-	public synchronized Layer4SimpleRpc getLayer4(){
-		return layer4;
+	public void sendCommand(int command, byte[] data) throws IOException{
+		Layer4SimpleRpc l4;
+		synchronized(this){
+			l4 = layer4;
+		}
+		l4.sendCommandRequest(command, data);
+	}
+		
+	public int getUniqueId(){
+		return uniqueDeviceId;
+	}
+	
+	
+	
+	/**
+	 * A listener should call this method to register himself as a listener
+	 * of any command directed to this Device.
+	 * 
+	 * @param command The command I want to listen for
+	 */
+	public void addCommandReceivedListener(CommandReceivedListener listener){
+		listeners.add(listener);
+	}
+	
+	/**
+	 * This is the interface that somebody must implements if he want to be
+	 * notified when a command is sent to this Device.
+	 */
+	public interface CommandReceivedListener {
+		public void onCommandReceived(int command, int senderDeviceId, ByteBuffer data);
 	}
 	
 	

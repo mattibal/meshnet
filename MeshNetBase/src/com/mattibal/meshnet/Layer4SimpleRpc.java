@@ -35,11 +35,6 @@ public class Layer4SimpleRpc implements Layer3Base.ILayer4 {
 	 */
 	private Device device = null;
 	
-	/**
-	 * These are the listeners of a command (packet) sent to this layer4.
-	 */
-	private final Set<CommandReceivedListener> listeners = new HashSet<Layer4SimpleRpc.CommandReceivedListener>();
-	
 	
 	protected Layer4SimpleRpc(NetworkTree.Node node, Layer3Base layer3){
 		this.node = node;
@@ -66,9 +61,6 @@ public class Layer4SimpleRpc implements Layer3Base.ILayer4 {
 				}
 			} else {
 				System.out.println("command called to unknown device type");
-			}
-			for(CommandReceivedListener listener: listeners){
-				listener.onCommandReceived(command, data);
 			}
 		}
 	}
@@ -106,24 +98,7 @@ public class Layer4SimpleRpc implements Layer3Base.ILayer4 {
 		byte[] sendData = new byte[0];
 		sendCommandRequest(0, sendData);
 	}
-	
-	
-	/**
-	 * A listener should call this method to register himself as a listener
-	 * of any command directed to the device represented as this layer4.
-	 * 
-	 * @param command The command I want to listen for
-	 */
-	public void addCommandReceivedListener(CommandReceivedListener listener){
-		listeners.add(listener);
-	}
 
 	
-	/**
-	 * This is the interface that somebody must implements if he want to be
-	 * notified when a command is sent to the device represented by this layer4.
-	 */
-	public interface CommandReceivedListener {
-		public void onCommandReceived(int command, ByteBuffer data);
-	}
+
 }
