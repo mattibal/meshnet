@@ -29,6 +29,16 @@ public class AbsoluteColor {
 	}
 	
 	
+	public double getx(){
+		return x;
+	}
+	public double gety(){
+		return y;
+	}
+	public double getYlumi(){
+		return Y;
+	}
+	
 	
 	
 	@Override
@@ -48,29 +58,4 @@ public class AbsoluteColor {
 		return (int) sum;
 	}
 	
-	
-	
-	/**
-	 * This comparator lets you order many AbsoluteColor object by how
-	 * much they are distant from another AbsoluteColor in the
-	 * xy chromaticity diagram, specified in the constructor of this class.
-	 */
-	protected class DistanceComparator implements Comparator<AbsoluteColor> {
-		
-		/**
-		 * @param referenceColor The color on which are measured the distance
-		 * between the two colors you want to compare
-		 */
-		public DistanceComparator(AbsoluteColor referenceColor) {
-			// TODO Auto-generated constructor stub
-		}
-
-		@Override
-		public int compare(AbsoluteColor o1, AbsoluteColor o2) {
-			// TODO Auto-generated method stub
-			return 0;
-		}
-		
-	}
-
 }
