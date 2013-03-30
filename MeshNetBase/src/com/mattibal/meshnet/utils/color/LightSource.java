@@ -7,17 +7,17 @@ package com.mattibal.meshnet.utils.color;
  */
 public class LightSource {
 	
-	private final Chrominance chroma;
+	private final Chromaticity chroma;
 	private final double maxLumi;
 	
-	public LightSource(Chrominance chroma, double maxLuminance){
+	public LightSource(Chromaticity chroma, double maxLuminance){
 		this.chroma = chroma;
 		this.maxLumi = maxLuminance;
 	}
 	
 	public LightSource(double x, double y, double maxLuminance){
 		this.maxLumi = maxLuminance;
-		this.chroma = new Chrominance(x, y);
+		this.chroma = new Chromaticity(x, y);
 	}
 
 	public double getMaxLumi(){

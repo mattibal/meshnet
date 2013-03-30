@@ -11,6 +11,7 @@ import com.mattibal.meshnet.devices.Led1Analog2Device;
 import com.mattibal.meshnet.devices.LedLamp1Device;
 import com.mattibal.meshnet.devices.LedTestDevice;
 import com.mattibal.meshnet.utils.color.AbsoluteColor;
+import com.mattibal.meshnet.utils.color.gui.ChromaticityJFrame;
 
 /**
  * Coso di test che fa partire la base della MeshNet, e poi scambia qualche
@@ -19,26 +20,6 @@ import com.mattibal.meshnet.utils.color.AbsoluteColor;
 public class MeshNetTest {
 
 	public static void main(String[] args) {
-		
-		/*SerialComm main = new SerialComm();
-		main.initialize();
-		Thread t=new Thread() {
-			public void run() {
-				//the following line will keep this app alive for 1000 seconds,
-				//waiting for events to occur and responding to them (printing incoming messages to console).
-				try {Thread.sleep(1000000);} catch (InterruptedException ie) {}
-			}
-		};
-		t.start();
-		System.out.println("Started");
-		*/
-		
-		/*try {
-			SerialRXTXComm comm = new SerialRXTXComm("/dev/ttyACM0");
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}*/
 		
 		try {
 			
@@ -80,11 +61,11 @@ public class MeshNetTest {
 			if(dev!=null && dev instanceof LedLamp1Device){
 				LedLamp1Device lamp = (LedLamp1Device) dev;
 				
-				for(int i=0; i<6; i++){
-					AbsoluteColor color1 = new AbsoluteColor(82, 211, 211);
+				/*for(int i=0; i<6; i++){
+					AbsoluteColor color1 = new AbsoluteColor(0, 0, 0);
 					lamp.setColor(color1);
 					Thread.sleep(1000);
-				}
+				}*/
 				
 				
 			} else {
@@ -95,8 +76,6 @@ public class MeshNetTest {
 			e.printStackTrace();
 		}
 		
-		
-		System.exit(0);
 		
 	}
 	

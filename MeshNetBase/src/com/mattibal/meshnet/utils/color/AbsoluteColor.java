@@ -6,7 +6,7 @@ package com.mattibal.meshnet.utils.color;
 public class AbsoluteColor {
 	
 	// we store internally color information as CIE xyY color coordinates
-	private final Chrominance chroma; // xy
+	private final Chromaticity chroma; // xy
 	private final double Y;
 
 	/**
@@ -21,13 +21,13 @@ public class AbsoluteColor {
 		double y = XYZ[1]/(XYZ[0]+XYZ[1]+XYZ[2]);
 		this.Y = XYZ[1];
 		
-		chroma = new Chrominance(x, y);
+		chroma = new Chromaticity(x, y);
 	}
 
-	/*public AbsoluteColor(double x, double y, double Y){
-		this.chroma = new Chrominance(x, y);
+	public AbsoluteColor(Chromaticity chroma, double Y){
+		this.chroma = chroma;
 		this.Y=Y;
-	}*/
+	}
 	
 	
 	public double getx(){

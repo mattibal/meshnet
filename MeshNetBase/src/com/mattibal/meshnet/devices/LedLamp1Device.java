@@ -10,8 +10,10 @@ import java.util.Set;
 
 import com.mattibal.meshnet.Device;
 import com.mattibal.meshnet.utils.color.AbsoluteColor;
+import com.mattibal.meshnet.utils.color.Chromaticity;
 import com.mattibal.meshnet.utils.color.LightSource;
 import com.mattibal.meshnet.utils.color.MulticolorSourceCalculator;
+import com.mattibal.meshnet.utils.color.gui.ChromaticityJFrame;
 
 /**
  * This is a lamp made with very high power RGBAW LEDs.
@@ -31,6 +33,8 @@ public class LedLamp1Device extends Device {
 	private LightSource blue;
 	private LightSource amber;
 	private LightSource white;
+	
+	private ChromaticityJFrame frame;
 	
 	
 	public LedLamp1Device(int uniqueDeviceId) {
@@ -64,6 +68,7 @@ public class LedLamp1Device extends Device {
 			}
 		}
 		setLedPwmState(r, b, g, a, w); // TODO wrong order in my prototype wirings!! 
+		//setLedPwmState(255, 255, 255, 0, 0);
 	}
 	
 	
@@ -113,7 +118,26 @@ public class LedLamp1Device extends Device {
 		//others.add(amber);
 		
 		colorCalc = new MulticolorSourceCalculator(white, others);
+		//colorCalc = new MulticolorSourceCalculator(red, others);
 		
+		
+		frame = new ChromaticityJFrame(new ChromaticityJFrame.CieXYPointClickedListener() {
+			@Override
+			public void onCieXYPointClicked(double x, double y) {
+				try {
+					// Set the color I clicked
+					setColor(new AbsoluteColor(new Chromaticity(x, y), 1000));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		frame.setVisible(true);
+		// Display light sources chromaticities
+		frame.addChromaticityPoint(white.getx(), white.gety());
+		for(LightSource s : others){
+			frame.addChromaticityPoint(s.getx(), s.gety());
+		}
 	}
 
 }
