@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.mattibal.meshnet.devices.Led1Analog2Device;
+import com.mattibal.meshnet.devices.LedLamp1Device;
 import com.mattibal.meshnet.devices.LedTestDevice;
 
 /**
@@ -93,6 +94,8 @@ public class Device {
 					// TODO workaround for duplicated device type
 					//device =  new LedTestDevice(uniqueDeviceId);
 					device = new Led1Analog2Device(uniqueDeviceId);
+				} else if(deviceType == LedLamp1Device.DEVICE_TYPE){
+					device = new LedLamp1Device(uniqueDeviceId);
 				} else {
 					// Unknown device type
 					device =  new Device(uniqueDeviceId, deviceType);

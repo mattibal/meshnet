@@ -1,9 +1,5 @@
 package com.mattibal.meshnet.utils.color;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.TreeSet;
-
 import Jama.Matrix;
 
 /**
@@ -14,7 +10,7 @@ import Jama.Matrix;
  * chromaticity of the light source) and the maximum Y (the maximum luminance
  * measured in lumen that the light source can output).
  */
-public class ColorTriangle {
+public class LightSourcesTriangle {
 	
 	/**
 	 * A set of absolute colors (points in the xy chromaticity diagram)
@@ -23,9 +19,9 @@ public class ColorTriangle {
 	 * The Y in these object is the maximum luminance the light source
 	 * can output.
 	 */
-	private final AbsoluteColor[] vertices;
+	private final LightSource[] vertices;
 	
-	public ColorTriangle(AbsoluteColor[] vertices){
+	public LightSourcesTriangle(LightSource[] vertices){
 		if(vertices.length != 3){
 			throw new IllegalArgumentException("a triangle has 3 vertices");
 		}
@@ -76,7 +72,7 @@ public class ColorTriangle {
 		double scaleFactor = 1;
 		for(int i=0; i<3; i++){
 			double lumi = outLumi[i];
-			double maxLumi = vertices[i].getYlumi();
+			double maxLumi = vertices[i].getMaxLumi();
 			if(lumi > maxLumi){
 				double myScaleFactor = maxLumi / lumi;
 				if(myScaleFactor < scaleFactor){
@@ -95,5 +91,8 @@ public class ColorTriangle {
 		return outLumi;
 	}
 	
+	public LightSource[] getLightSources(){
+		return vertices;
+	}
 
 }
