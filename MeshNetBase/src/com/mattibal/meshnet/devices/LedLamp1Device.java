@@ -68,7 +68,7 @@ public class LedLamp1Device extends Device {
 			}
 		}
 		setLedPwmState(r, b, g, a, w); // TODO wrong order in my prototype wirings!! 
-		//setLedPwmState(255, 255, 255, 0, 0);
+		//setLedPwmState(255, 255, 255, 255, 255);
 	}
 	
 	
@@ -100,7 +100,7 @@ public class LedLamp1Device extends Device {
 		
 		// LedEngin LZ9-K0WW00-0030 White LED - 2,1 Ampere total
 		// http://www.ledengin.com/files/products/LZ9/LZ9-00WW00.pdf
-		white = new LightSource(0.434, 0.403, 1350 / 3); // TODO this is for 700 mA!!
+		white = new LightSource(0.434, 0.403, 1350 / 2); // TODO this is for 700 mA!!
 		
 		// LedEngin LZ4-20MA00-0000 RGBA LED - 700 mA for each LED
 		// http://www.ledengin.com/files/products/LZ4/LZ4-00MA00.pdf
@@ -115,18 +115,18 @@ public class LedLamp1Device extends Device {
 		others.add(red);
 		others.add(green);
 		others.add(blue);
-		//others.add(amber);
+		others.add(amber);
 		
 		colorCalc = new MulticolorSourceCalculator(white, others);
 		//colorCalc = new MulticolorSourceCalculator(red, others);
 		
 		
-		frame = new ChromaticityJFrame(new ChromaticityJFrame.CieXYPointClickedListener() {
+		frame = new ChromaticityJFrame(new ChromaticityJFrame.CiexyYColorSelectedListener() {
 			@Override
-			public void onCieXYPointClicked(double x, double y) {
+			public void onCiexyYColorSelected(double x, double y, double Y) {
 				try {
 					// Set the color I clicked
-					setColor(new AbsoluteColor(new Chromaticity(x, y), 1000));
+					setColor(new AbsoluteColor(new Chromaticity(x, y), Y));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
