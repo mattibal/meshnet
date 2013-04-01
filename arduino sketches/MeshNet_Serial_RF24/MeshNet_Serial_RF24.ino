@@ -32,7 +32,7 @@
 const uint32_t deviceType = 123;
 
 // DEVICE UNIQUE ID
-uint32_t deviceUniqueId = 384932;
+uint32_t deviceUniqueId = 394932;
 
 
 /** LAYER 2 DEPENDENT CODE **/

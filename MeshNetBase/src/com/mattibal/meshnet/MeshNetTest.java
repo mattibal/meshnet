@@ -32,7 +32,7 @@ public class MeshNetTest {
 			setupThread.join();
 			// Alè, la rete è pronta, adesso posso giocare con i device
 			
-			/*Device device = Device.getDeviceFromUniqueId(384932);
+			Device device = Device.getDeviceFromUniqueId(384932);
 			if(device!=null && device instanceof LedTestDevice){
 				LedTestDevice ledDevice = (LedTestDevice) device;
 				for(int i=0; i<5000; i++){
@@ -55,7 +55,7 @@ public class MeshNetTest {
 				}
 			} else {
 				System.out.println("Errore get device");
-			}*/
+			}
 			
 			Device dev = Device.getDeviceFromUniqueId(484333);
 			if(dev!=null && dev instanceof LedLamp1Device){
