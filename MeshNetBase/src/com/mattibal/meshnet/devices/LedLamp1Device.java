@@ -111,14 +111,12 @@ public class LedLamp1Device extends Device {
 		blue = new LightSource(0.13, 0.06, 30 * 4);  // 4 LEDs
 		amber = new LightSource(0.57, 0.43, 90 * 2); // 2 LEDs
 		
-		HashSet<LightSource> others = new HashSet<LightSource>();
-		others.add(red);
-		others.add(green);
-		others.add(blue);
-		others.add(amber);
+		// Sources in order of decrescent priority
+		LightSource[] sources = {
+			white, green, red, blue, amber
+		};
 		
-		colorCalc = new MulticolorSourceCalculator(white, others);
-		//colorCalc = new MulticolorSourceCalculator(red, others);
+		colorCalc = new MulticolorSourceCalculator(sources);
 		
 		
 		frame = new ChromaticityJFrame(new ChromaticityJFrame.CiexyYColorSelectedListener() {
@@ -134,8 +132,7 @@ public class LedLamp1Device extends Device {
 		});
 		frame.setVisible(true);
 		// Display light sources chromaticities
-		frame.addChromaticityPoint(white.getx(), white.gety());
-		for(LightSource s : others){
+		for(LightSource s : sources){
 			frame.addChromaticityPoint(s.getx(), s.gety());
 		}
 	}

@@ -40,5 +40,8 @@ public class AbsoluteColor {
 		return Y;
 	}
 	
+	public Chromaticity getChromaticity(){
+		return chroma;
+	}
 	
 }
