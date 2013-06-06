@@ -14,6 +14,7 @@ import com.mattibal.meshnet.utils.color.Chromaticity;
 import com.mattibal.meshnet.utils.color.LightSource;
 import com.mattibal.meshnet.utils.color.MulticolorSourceCalculator;
 import com.mattibal.meshnet.utils.color.gui.ChromaticityJFrame;
+import com.mattibal.meshnet.utils.color.gui.LabChooserJFrame;
 
 /**
  * This is a lamp made with very high power RGBAW LEDs.
@@ -135,6 +136,26 @@ public class LedLamp1Device extends Device {
 		for(LightSource s : sources){
 			frame.addChromaticityPoint(s.getx(), s.gety());
 		}
+		
+		
+		// LAB color chooser frame
+		LabChooserJFrame frame2 = new LabChooserJFrame(new LabChooserJFrame.CieXYZColorSelectedListener() {
+			@Override
+			public void onCieXYZColorSelected(double X, double Y, double Z) {
+				try {
+					double[] XYZ = {X, Y, Z};
+					// XYZ to xyY conversion
+					double x = XYZ[0]/(XYZ[0]+XYZ[1]+XYZ[2]);
+					double y = XYZ[1]/(XYZ[0]+XYZ[1]+XYZ[2]);
+					Y = Y*10;
+					setColor(new AbsoluteColor(new Chromaticity(x, y), Y));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		frame2.setVisible(true);
 	}
 
 }

@@ -204,7 +204,7 @@ public class ColourConverter
      *  @param wp Whitepoint used to perform the transformation.
      *  @return Colour in XYZ space.
      */
-    static double[] LABtoXYZ(double[] Lab, WhitePoint wp) 
+    public static double[] LABtoXYZ(double[] Lab, WhitePoint wp) 
     {
         double y = (Lab[0] + 16.0) / 116.0;
         double y3 = Math.pow(y, 3.0);

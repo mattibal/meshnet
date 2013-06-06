@@ -116,7 +116,7 @@ public class MulticolorSourceCalculator {
 		}
 		
 		if(solved==false){
-			return null;
+			//return null;
 		}
 		HashMap<LightSource, Double> output = new HashMap<LightSource, Double>();
 		for(LightSource source : sources){
