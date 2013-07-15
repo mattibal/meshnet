@@ -14,7 +14,12 @@ import com.mattibal.meshnet.utils.color.Chromaticity;
 import com.mattibal.meshnet.utils.color.LightSource;
 import com.mattibal.meshnet.utils.color.MulticolorSourceCalculator;
 import com.mattibal.meshnet.utils.color.gui.ChromaticityJFrame;
+import com.mattibal.meshnet.utils.color.gui.ChromaticityUCSJFrame;
+import com.mattibal.meshnet.utils.color.gui.CieXYZColorSelectedListener;
+import com.mattibal.meshnet.utils.color.gui.CiexyYColorSelectedListener;
+import com.mattibal.meshnet.utils.color.gui.HuslChooserJFrame;
 import com.mattibal.meshnet.utils.color.gui.LabChooserJFrame;
+import com.mattibal.meshnet.utils.color.gui.PlanckianLocusJFrame;
 
 /**
  * This is a lamp made with very high power RGBAW LEDs.
@@ -120,7 +125,7 @@ public class LedLamp1Device extends Device {
 		colorCalc = new MulticolorSourceCalculator(sources);
 		
 		
-		frame = new ChromaticityJFrame(new ChromaticityJFrame.CiexyYColorSelectedListener() {
+		frame = new ChromaticityJFrame(new CiexyYColorSelectedListener() {
 			@Override
 			public void onCiexyYColorSelected(double x, double y, double Y) {
 				try {
@@ -139,7 +144,7 @@ public class LedLamp1Device extends Device {
 		
 		
 		// LAB color chooser frame
-		LabChooserJFrame frame2 = new LabChooserJFrame(new LabChooserJFrame.CieXYZColorSelectedListener() {
+		LabChooserJFrame frame2 = new LabChooserJFrame(new CieXYZColorSelectedListener() {
 			@Override
 			public void onCieXYZColorSelected(double X, double Y, double Z) {
 				try {
@@ -156,6 +161,59 @@ public class LedLamp1Device extends Device {
 			}
 		});
 		frame2.setVisible(true);
+		
+		
+		// LAB color chooser frame
+		HuslChooserJFrame frame3 = new HuslChooserJFrame(new CieXYZColorSelectedListener() {
+			@Override
+			public void onCieXYZColorSelected(double X, double Y, double Z) {
+				try {
+					double[] XYZ = {X, Y, Z};
+					// XYZ to xyY conversion
+					double x = XYZ[0]/(XYZ[0]+XYZ[1]+XYZ[2]);
+					double y = XYZ[1]/(XYZ[0]+XYZ[1]+XYZ[2]);
+					Y = Y*5000;
+					setColor(new AbsoluteColor(new Chromaticity(x, y), Y));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		frame3.setVisible(true);
+		
+		
+		ChromaticityUCSJFrame frame4 = new ChromaticityUCSJFrame(new CiexyYColorSelectedListener() {
+			@Override
+			public void onCiexyYColorSelected(double x, double y, double Y) {
+				try {
+					// Set the color I clicked
+					setColor(new AbsoluteColor(new Chromaticity(x, y), Y));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		frame4.setVisible(true);
+		// Display light sources chromaticities
+		for(LightSource s : sources){
+			frame4.addChromaticityPoint(s.getx(), s.gety());
+		}
+		
+		
+		// Show Planckian Locus selector
+		PlanckianLocusJFrame planckFrame = new PlanckianLocusJFrame(new CiexyYColorSelectedListener() {
+			@Override
+			public void onCiexyYColorSelected(double x, double y, double Y) {
+				try {
+					// Set the color I clicked
+					setColor(new AbsoluteColor(new Chromaticity(x, y), Y));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		planckFrame.setVisible(true);
 	}
 
 }

@@ -127,9 +127,5 @@ public class ChromaticityJFrame extends JFrame {
 		}
 	}
 	
-	
-	public interface CiexyYColorSelectedListener {
-		public void onCiexyYColorSelected(double x, double y, double Y);
-	}
 
 }

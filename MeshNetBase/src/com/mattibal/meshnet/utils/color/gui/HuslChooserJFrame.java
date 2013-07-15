@@ -16,29 +16,27 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import com.mattibal.meshnet.utils.color.CIELab;
-import com.mattibal.meshnet.utils.color.ColourConverter;
-import com.mattibal.meshnet.utils.color.ColourConverter.WhitePoint;
+import com.mattibal.meshnet.utils.color.HuslConverter;
 
-public class LabChooserJFrame extends JFrame {
+public class HuslChooserJFrame extends JFrame {
 	
-	public final static int CHOOSER_WIDTH_PIXEL = 200;
-	public final static int CHOOSER_HEIGHT_PIXEL = 200;
+	public final static int CHOOSER_WIDTH_PIXEL = 360;
+	public final static int CHOOSER_HEIGHT_PIXEL = 100;
 	
-	private int currL = 50;
+	private int l = 50;
+	private double h, s;
 
-	private LabChooserJPanel contentPane;
+	private HuslChooserJPanel contentPane;
 	
 	private final CieXYZColorSelectedListener clickedListener;
-
 
 	/**
 	 * Create the frame.
 	 */
-	public LabChooserJFrame(CieXYZColorSelectedListener clickedListener) {
+	public HuslChooserJFrame(CieXYZColorSelectedListener clickedListener) {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 450, 300);
-		contentPane = new LabChooserJPanel();
+		contentPane = new HuslChooserJPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		contentPane.setLayout(new BorderLayout(0, 0));
 		setContentPane(contentPane);
@@ -48,65 +46,68 @@ public class LabChooserJFrame extends JFrame {
 		final JSlider slider = new JSlider(0, 100, 0);
 		slider.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				currL = slider.getValue();
+				l = slider.getValue();
 				contentPane.drawColorChooser();
 				contentPane.repaint();
+				updateLedColor();
 			}
 		});
+		
 		getContentPane().add(slider, BorderLayout.NORTH);
 	}
 	
 	
-	private class LabChooserJPanel extends JPanel {
-		
+	private void updateLedColor(){
+		double[] XYZ = HuslConverter.HUSLtoXYZ(h, s, l);
+		clickedListener.onCieXYZColorSelected(XYZ[0], XYZ[1], XYZ[2]);
+	}
+	
+	
+
+	private class HuslChooserJPanel extends JPanel {
+
 		private BufferedImage image;
-		private CIELab cielab = new CIELab();
-		
-		
-		
-		public LabChooserJPanel(){
+
+
+
+		public HuslChooserJPanel(){
 			image = new BufferedImage(CHOOSER_WIDTH_PIXEL,CHOOSER_HEIGHT_PIXEL, BufferedImage.TYPE_INT_ARGB);
-			
+
 			drawColorChooser();
-			
+
 			this.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mousePressed(MouseEvent e) {
 					super.mousePressed(e);
-					
+
 					Point clickedPoint = e.getPoint();
-					double L = currL;
-					double a = clickedPoint.getX()-100;
-					double b = clickedPoint.getY()-100;
-					double[] Lab = {L, a, b};
-					double[] XYZ = ColourConverter.LABtoXYZ(Lab, WhitePoint.D65);
-					clickedListener.onCieXYZColorSelected(XYZ[0], XYZ[1], XYZ[2]);
+					h = clickedPoint.getX();
+					s = clickedPoint.getY();
 					
+					updateLedColor();
+
 				}
 			});
 		}
-		
+
 		@Override
 		protected void paintComponent(Graphics g) {
 			// TODO Auto-generated method stub
 			super.paintComponent(g);
-			
+
 			g.drawImage(image, 0, 0, null);
 		}
-		
-		
+
+
 		private void drawColorChooser(){
 			for(int x=0; x<CHOOSER_WIDTH_PIXEL; x++){
 				for(int y=0; y<CHOOSER_HEIGHT_PIXEL; y++){
-					Color color = cielab.getColour(currL, x-100, y-100, false);
-					if(color==null){
-						color = Color.GRAY;
-					}
+					double[] rgbdouble = HuslConverter.HUSLtoRGB(x, y, l);
+					Color color = new Color((float)rgbdouble[0], (float)rgbdouble[1], (float)rgbdouble[2]);
 					image.setRGB(x, y, color.getRGB());
 				}
 			}
 		}
-		
-	}
 
+	}
 }
