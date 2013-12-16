@@ -310,7 +310,7 @@ The "deviceType" is an unique number that identifies the capability of this devi
 */
 
 typedef struct{
-    const unsigned char type = DATA_TO_BASE;
+    unsigned char type;
     uint8_t srcAddress;
     uint8_t command;
     unsigned char data[40]; // TODO lunghezza array messa a caso
@@ -320,6 +320,7 @@ typedef struct{
 void sendCommand(uint8_t command, void* data, uint8_t dataLen){
     if(toBaseInterface != -1){
         dataToBaseLayer4 message;
+	message.type = DATA_TO_BASE;
         message.srcAddress = myAddress;
         message.command = command;
         memcpy(&message.data, data, dataLen);

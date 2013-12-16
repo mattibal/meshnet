@@ -91,10 +91,11 @@ typedef struct {
 typedef struct {
     uint8_t phyAddr;
     uint16_t netId;
-    const uint16_t first16bits = 0xD2D2;
-    const uint16_t padding1 = 0x0000;
-    const uint8_t padding2 = 0x00;
+    uint16_t first16bits;
+    uint16_t padding1;
+    uint8_t padding2;
 } rf24addr __attribute__((packed));
+
 
 
 typedef struct {
@@ -154,6 +155,9 @@ void rf24startListening(){
 
     // Open pipe 0 (broadcast), I must do this every time because his address is modified when I transmit data
     rf24addr broadcastPipe;
+    broadcastPipe.first16bits = 0xD2D2;
+    broadcastPipe.padding1 = 0x0000;
+    broadcastPipe.padding2 = 0x00;
     broadcastPipe.netId = networkId;
     broadcastPipe.phyAddr = 0;
     radio.openReadingPipe(0, *(uint64_t *) &broadcastPipe);
@@ -184,6 +188,9 @@ void rf24init(){
     
     // Open my no-ACK pipe (this must be done only one time during initialization)
     rf24addr noackPipe;
+    noackPipe.first16bits = 0xD2D2;
+    noackPipe.padding1 = 0x0000;
+    noackPipe.padding2 = 0x00;
     noackPipe.netId = networkId;
     noackPipe.phyAddr = rf24myMacAddress;
     radio.openReadingPipe(1, *(uint64_t *) &noackPipe);
@@ -247,6 +254,9 @@ int rf24sendPacket(unsigned char * message, uint8_t len, uint8_t macAddress){
     }
     memcpy(frameToSend.data, message, len);
     rf24addr destAddr;
+    destAddr.first16bits = 0xD2D2;
+    destAddr.padding1 = 0x0000;
+    destAddr.padding2 = 0x00;
     destAddr.netId = networkId;
     bool enableAck = false;
     
@@ -288,6 +298,9 @@ int rf24sendPacket(unsigned char * message, uint8_t len, uint8_t macAddress){
                     myPipeTableLen++;
                     // Open the new pipe in the radio
                     rf24addr newPipe;
+		    newPipe.first16bits = 0xD2D2;
+		    newPipe.padding1 = 0x0000;
+		    newPipe.padding2 = 0x00;
                     newPipe.netId = networkId;
                     newPipe.phyAddr = newPhy;
                     radio.openReadingPipe(myPipeTableLen+1, *(uint64_t *) &newPipe);
