@@ -14,6 +14,12 @@ import com.mattibal.meshnet.utils.color.Chromaticity;
 import com.mattibal.meshnet.utils.color.LightSource;
 import com.mattibal.meshnet.utils.color.MulticolorSourceCalculator;
 import com.mattibal.meshnet.utils.color.gui.ChromaticityJFrame;
+import com.mattibal.meshnet.utils.color.gui.ChromaticityUCSJFrame;
+import com.mattibal.meshnet.utils.color.gui.CieXYZColorSelectedListener;
+import com.mattibal.meshnet.utils.color.gui.CiexyYColorSelectedListener;
+import com.mattibal.meshnet.utils.color.gui.HuslChooserJFrame;
+import com.mattibal.meshnet.utils.color.gui.LabChooserJFrame;
+import com.mattibal.meshnet.utils.color.gui.PlanckianLocusJFrame;
 
 /**
  * This is a lamp made with very high power RGBAW LEDs.
@@ -111,17 +117,15 @@ public class LedLamp1Device extends Device {
 		blue = new LightSource(0.13, 0.06, 30 * 4);  // 4 LEDs
 		amber = new LightSource(0.57, 0.43, 90 * 2); // 2 LEDs
 		
-		HashSet<LightSource> others = new HashSet<LightSource>();
-		others.add(red);
-		others.add(green);
-		others.add(blue);
-		others.add(amber);
+		// Sources in order of decrescent priority
+		LightSource[] sources = {
+			white, green, red, blue, amber
+		};
 		
-		colorCalc = new MulticolorSourceCalculator(white, others);
-		//colorCalc = new MulticolorSourceCalculator(red, others);
+		colorCalc = new MulticolorSourceCalculator(sources);
 		
 		
-		frame = new ChromaticityJFrame(new ChromaticityJFrame.CiexyYColorSelectedListener() {
+		frame = new ChromaticityJFrame(new CiexyYColorSelectedListener() {
 			@Override
 			public void onCiexyYColorSelected(double x, double y, double Y) {
 				try {
@@ -134,10 +138,82 @@ public class LedLamp1Device extends Device {
 		});
 		frame.setVisible(true);
 		// Display light sources chromaticities
-		frame.addChromaticityPoint(white.getx(), white.gety());
-		for(LightSource s : others){
+		for(LightSource s : sources){
 			frame.addChromaticityPoint(s.getx(), s.gety());
 		}
+		
+		
+		// LAB color chooser frame
+		LabChooserJFrame frame2 = new LabChooserJFrame(new CieXYZColorSelectedListener() {
+			@Override
+			public void onCieXYZColorSelected(double X, double Y, double Z) {
+				try {
+					double[] XYZ = {X, Y, Z};
+					// XYZ to xyY conversion
+					double x = XYZ[0]/(XYZ[0]+XYZ[1]+XYZ[2]);
+					double y = XYZ[1]/(XYZ[0]+XYZ[1]+XYZ[2]);
+					Y = Y*10;
+					setColor(new AbsoluteColor(new Chromaticity(x, y), Y));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		frame2.setVisible(true);
+		
+		
+		// LAB color chooser frame
+		HuslChooserJFrame frame3 = new HuslChooserJFrame(new CieXYZColorSelectedListener() {
+			@Override
+			public void onCieXYZColorSelected(double X, double Y, double Z) {
+				try {
+					double[] XYZ = {X, Y, Z};
+					// XYZ to xyY conversion
+					double x = XYZ[0]/(XYZ[0]+XYZ[1]+XYZ[2]);
+					double y = XYZ[1]/(XYZ[0]+XYZ[1]+XYZ[2]);
+					Y = Y*5000;
+					setColor(new AbsoluteColor(new Chromaticity(x, y), Y));
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		});
+		frame3.setVisible(true);
+		
+		
+		ChromaticityUCSJFrame frame4 = new ChromaticityUCSJFrame(new CiexyYColorSelectedListener() {
+			@Override
+			public void onCiexyYColorSelected(double x, double y, double Y) {
+				try {
+					// Set the color I clicked
+					setColor(new AbsoluteColor(new Chromaticity(x, y), Y));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		frame4.setVisible(true);
+		// Display light sources chromaticities
+		for(LightSource s : sources){
+			frame4.addChromaticityPoint(s.getx(), s.gety());
+		}
+		
+		
+		// Show Planckian Locus selector
+		PlanckianLocusJFrame planckFrame = new PlanckianLocusJFrame(new CiexyYColorSelectedListener() {
+			@Override
+			public void onCiexyYColorSelected(double x, double y, double Y) {
+				try {
+					// Set the color I clicked
+					setColor(new AbsoluteColor(new Chromaticity(x, y), Y));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		planckFrame.setVisible(true);
 	}
 
 }

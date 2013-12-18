@@ -23,6 +23,7 @@ public class AbsoluteColor {
 		
 		chroma = new Chromaticity(x, y);
 	}
+	
 
 	public AbsoluteColor(Chromaticity chroma, double Y){
 		this.chroma = chroma;
@@ -40,5 +41,8 @@ public class AbsoluteColor {
 		return Y;
 	}
 	
+	public Chromaticity getChromaticity(){
+		return chroma;
+	}
 	
 }
