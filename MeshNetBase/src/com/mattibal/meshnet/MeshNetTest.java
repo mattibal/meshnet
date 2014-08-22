@@ -1,10 +1,12 @@
 package com.mattibal.meshnet;
 
+import gnu.io.CommPortIdentifier;
 import gnu.io.NoSuchPortException;
 import gnu.io.PortInUseException;
 import gnu.io.UnsupportedCommOperationException;
 
 import java.io.IOException;
+import java.util.Enumeration;
 import java.util.TooManyListenersException;
 
 import com.mattibal.meshnet.devices.Led1Analog2Device;
@@ -24,7 +26,22 @@ public class MeshNetTest {
 		try {
 			
 			Layer3Base base = new Layer3Base();
-			SerialRXTXComm serial = new SerialRXTXComm("/dev/ttyUSB0", base);
+			
+			// Find the serial port device
+			CommPortIdentifier portId = null;
+			Enumeration portEnum = CommPortIdentifier.getPortIdentifiers();
+			while(portEnum.hasMoreElements()){
+				CommPortIdentifier currPort = (CommPortIdentifier) portEnum.nextElement();
+				String portName = currPort.getName();
+				if(portName.startsWith("/dev/tty.usbmodem") || portName.startsWith("/dev/ttyACM")){
+					portId = currPort;
+				}
+			}
+			if(portId == null){
+				throw new IOException("No serial port found matching the name pattern");
+			}
+			
+			SerialRXTXComm serial = new SerialRXTXComm(portId, base);
 			Thread.sleep(4000);
 			Layer3Base.NetworkSetupThread setup = base.new NetworkSetupThread();
 			Thread setupThread = new Thread(setup);

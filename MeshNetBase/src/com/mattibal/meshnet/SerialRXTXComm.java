@@ -29,10 +29,8 @@ public class SerialRXTXComm{
 	protected Layer2Serial layer2;
 	
 	
-	public SerialRXTXComm(String portName, Layer3Base layer3) throws NoSuchPortException, PortInUseException, UnsupportedCommOperationException, IOException, TooManyListenersException{
-		
-		CommPortIdentifier portIdentifier = CommPortIdentifier
-				.getPortIdentifier(portName);
+	public SerialRXTXComm(CommPortIdentifier portIdentifier, Layer3Base layer3) throws NoSuchPortException, PortInUseException, UnsupportedCommOperationException, IOException, TooManyListenersException{
+
 		if (portIdentifier.isCurrentlyOwned()) {
 			throw new IOException("Port is currently in use");
 		} else {
