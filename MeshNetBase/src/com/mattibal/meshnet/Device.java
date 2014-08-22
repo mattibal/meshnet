@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.mattibal.meshnet.devices.Led1Analog2Device;
@@ -119,6 +120,19 @@ public class Device {
 	public static Device getDeviceFromUniqueId(int uniqueDeviceId){
 		synchronized(knownUniqueDevicesId){
 			return knownUniqueDevicesId.get(uniqueDeviceId);
+		}
+	}
+	
+	/**
+	 * Returns a copy of the currently known set of devices
+	 */
+	public static Set<Device> getKnownDevices(){
+		synchronized(knownUniqueDevicesId){
+			HashSet<Device> devices = new HashSet<Device>();
+			for(Device device : knownUniqueDevicesId.values()){
+				devices.add(device);
+			}
+			return devices;
 		}
 	}
 	
